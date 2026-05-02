@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     }
 
     const data = await r.json();
-    const item = Object.values(data).find((i) => i?.name === market_hash_name) ?? null;
+    const item = data[market_hash_name] ?? null;
     const priceRaw = item?.min ?? null;
 
     return res.status(200).json({
