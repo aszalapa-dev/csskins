@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         limit: 5,
         offset: 0,
-        where: { skin_name: [market_hash_name] },
+        where: { skin_name: market_hash_name },
       }),
     });
 
