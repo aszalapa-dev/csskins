@@ -1,5 +1,5 @@
 const cache = new Map();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 10 * 60 * 1000;
 
 export default async function handler(req, res) {
   const apiKey = process.env.CSFLOAT_API_KEY;
@@ -34,7 +34,8 @@ export default async function handler(req, res) {
     });
 
     if (!r.ok) {
-      return res.status(r.status).json({ error: `CSFloat responded with ${r.status}` });
+      const errBody = await r.text();
+      return res.status(r.status).json({ error: `CSFloat responded with ${r.status}`, csfloat_error: errBody });
     }
 
     const data = await r.json();
@@ -51,6 +52,7 @@ export default async function handler(req, res) {
 
     cache.set(market_hash_name, { ts: Date.now(), data: result });
 
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
     return res.status(200).json(result);
   } catch (err) {
     return res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
