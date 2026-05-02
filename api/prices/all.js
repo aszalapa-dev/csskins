@@ -31,5 +31,12 @@ export default async function handler(req, res) {
     })
     .filter((p) => p.price !== null);
 
-  return res.status(200).json({ market_hash_name, prices });
+  const debug_raw = results.map((result, i) => ({
+    source: SOURCES[i],
+    status: result.status,
+    value: result.status === 'fulfilled' ? result.value : null,
+    error: result.status === 'rejected' ? result.reason?.message : null,
+  }));
+
+  return res.status(200).json({ market_hash_name, prices, debug_raw });
 }
