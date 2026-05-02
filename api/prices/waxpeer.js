@@ -12,12 +12,12 @@ export default async function handler(req, res) {
 
   const params = new URLSearchParams({
     api: apiKey,
-    search: market_hash_name,
     game: 'csgo',
+    minified: '1',
   });
 
   try {
-    const r = await fetch(`https://api.waxpeer.com/v1/search-items-by-name?${params}`, {
+    const r = await fetch(`https://api.waxpeer.com/v1/prices?${params}`, {
       headers: { Accept: 'application/json' },
     });
 
@@ -26,8 +26,8 @@ export default async function handler(req, res) {
     }
 
     const data = await r.json();
-    const item = data?.items?.[0];
-    const priceRaw = item?.price ?? null;
+    const item = data?.items?.[market_hash_name] ?? null;
+    const priceRaw = item?.min ?? null;
 
     return res.status(200).json({
       source: 'waxpeer',
