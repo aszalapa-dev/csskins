@@ -25,11 +25,15 @@ export default async function handler(req, res) {
       }),
     });
 
+    const body = await r.text();
+
     if (!r.ok) {
-      return res.status(r.status).json({ error: `BitSkins responded with ${r.status}` });
+      let parsed;
+      try { parsed = JSON.parse(body); } catch { parsed = body; }
+      return res.status(r.status).json({ error: `BitSkins responded with ${r.status}`, bitskins_error: parsed });
     }
 
-    const data = await r.json();
+    const data = JSON.parse(body);
     const item = data?.list?.[0];
 
     return res.status(200).json({
