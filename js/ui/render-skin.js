@@ -8,6 +8,15 @@ const MP_META = {
   'DMarket':      { logo:'DM', logoBg:'#0c1624', logoColor:'#4a9eff', stars: 4.5, reviews:'8.3k', partner: false },
 };
 
+const MP_SOURCE_META = {
+  skinport:  { name: 'Skinport',  abbr: 'SP', bg: '#0d1822', color: '#f79a3f' },
+  csfloat:   { name: 'CSFloat',   abbr: 'CF', bg: '#0d1520', color: '#5b8af5' },
+  dmarket:   { name: 'DMarket',   abbr: 'DM', bg: '#0c1624', color: '#4a9eff' },
+  shadowpay: { name: 'Shadowpay', abbr: 'SH', bg: '#0d1a14', color: '#2ecc71' },
+  waxpeer:   { name: 'Waxpeer',   abbr: 'WP', bg: '#14100a', color: '#e88b34' },
+  bitskins:  { name: 'BitSkins',  abbr: 'BK', bg: '#0d0d20', color: '#7b68ee' },
+};
+
 const INFO_ICONS = {
   tag:     `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h5.5l6 6-5.5 5.5-6-6V2z"/><circle cx="5" cy="5" r=".9" fill="currentColor" stroke="none"/></svg>`,
   target:  `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="1" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="15"/><line x1="1" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="15" y2="8"/></svg>`,
@@ -176,6 +185,12 @@ function render(skin) {
 </div>
 
 <div class="extra-sections">
+  <div class="extra-card" id="mpPricesCard">
+    <div class="extra-head">Prix par marketplace</div>
+    <div id="mpPricesBody" class="mp-loader-wrap">
+      <div class="mp-spin"></div>
+    </div>
+  </div>
   <div class="extra-card" id="colorsCard">
     <div class="extra-head">Colors</div>
     <div class="colors-swatches" id="colorsSwatches">
@@ -193,6 +208,7 @@ function render(skin) {
   initFloatSlider(skin);
   initColors(skin);
   initContainers(skin);
+  initMarketplacePrices(skin);
 }
 
 function buildWearRows(skin) {
@@ -537,6 +553,64 @@ function buildGallery(skin) {
     }).join('')}
   </div>
 </div>`;
+}
+
+async function initMarketplacePrices(skin) {
+  const body = document.getElementById('mpPricesBody');
+  if (!body) return;
+
+  const wearFull = WN[skin.wear] || skin.wear || '';
+  const mhn = skin.name
+    + (skin.variant ? ' | ' + skin.variant : '')
+    + (wearFull ? ' (' + wearFull + ')' : '');
+
+  const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'https://csskinsv2.vercel.app'
+    : window.location.origin;
+  const url = API_BASE + '/api/prices/all?market_hash_name=' + encodeURIComponent(mhn);
+  console.log('[mp-prices] market_hash_name:', mhn);
+  console.log('[mp-prices] url:', url);
+
+  try {
+    const r = await fetch(url);
+    const raw = await r.text();
+    console.log('[mp-prices] status:', r.status);
+    console.log('[mp-prices] raw body:', raw);
+    const data = JSON.parse(raw);
+
+    if (!data.prices || !data.prices.length) {
+      body.innerHTML = '<div class="mp-empty">Prix non disponible</div>';
+      return;
+    }
+
+    const sorted = [...data.prices].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    const cheapest = sorted[0]?.source;
+
+    body.innerHTML = sorted.map(p => {
+      const m = MP_SOURCE_META[p.source] || { name: p.source, abbr: p.source.slice(0,2).toUpperCase(), bg: '#1a1f2a', color: '#7b8698' };
+      const priceStr = p.price != null
+        ? (p.currency === 'EUR' ? '€' : '$') + p.price.toFixed(2)
+        : '—';
+      const isCheapest = p.source === cheapest;
+      return `
+      <div class="mp-row${isCheapest ? ' mp-best' : ''}">
+        <div class="mp-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
+        <div class="mp-name">
+          ${escH(m.name)}
+          ${isCheapest ? '<span class="mp-cheapest-badge">MOINS CHER</span>' : ''}
+        </div>
+        <div class="mp-price">${escH(priceStr)}</div>
+        <a class="mp-buy-btn" href="${escA(p.url || '#')}" target="_blank" rel="noopener">Acheter →</a>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('[mp-prices] error:', e);
+    body.innerHTML = `<div class="mp-empty" style="text-align:left;padding:16px 20px">
+      <div style="color:#eb4b4b;font-weight:600;margin-bottom:6px">Erreur de chargement</div>
+      <div style="font-size:11px;color:var(--muted);font-family:monospace;white-space:pre-wrap">${escH(e.message || String(e))}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:6px">URL: ${escH(url)}</div>
+    </div>`;
+  }
 }
 
 function initColors(skin) {
