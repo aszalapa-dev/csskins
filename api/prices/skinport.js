@@ -13,20 +13,28 @@ export default async function handler(req, res) {
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   const params = new URLSearchParams({ market_hash_name, app_id: '730' });
+  const upstreamUrl = `https://api.skinport.com/v1/items?${params}`;
 
   try {
-    const r = await fetch(`https://api.skinport.com/v1/items?${params}`, {
+    const r = await fetch(upstreamUrl, {
       headers: {
         Authorization: `Basic ${credentials}`,
         Accept: 'application/json',
       },
     });
 
+    const body = await r.text();
+    console.log('[skinport] url:', upstreamUrl);
+    console.log('[skinport] status:', r.status);
+    console.log('[skinport] body:', body);
+
     if (!r.ok) {
-      return res.status(r.status).json({ error: `Skinport responded with ${r.status}` });
+      let parsed;
+      try { parsed = JSON.parse(body); } catch { parsed = body; }
+      return res.status(r.status).json({ error: `Skinport responded with ${r.status}`, skinport_error: parsed });
     }
 
-    const data = await r.json();
+    const data = JSON.parse(body);
     const item = Array.isArray(data) ? data[0] : null;
 
     return res.status(200).json({
