@@ -1,11 +1,18 @@
-const SOURCES = ['skinport', 'csfloat', 'dmarket', 'shadowpay', 'waxpeer', 'bitskins'];
+import { fetchPrice as fetchSkinport } from './skinport.js';
+import { fetchPrice as fetchCsfloat } from './csfloat.js';
+import { fetchPrice as fetchDmarket } from './dmarket.js';
+import { fetchPrice as fetchShadowpay } from './shadowpay.js';
+import { fetchPrice as fetchWaxpeer } from './waxpeer.js';
+import { fetchPrice as fetchBitskins } from './bitskins.js';
 
-async function fetchSource(baseUrl, source, market_hash_name) {
-  const url = `${baseUrl}/api/prices/${source}?market_hash_name=${encodeURIComponent(market_hash_name)}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${source} responded with ${r.status}`);
-  return r.json();
-}
+const FETCHERS = [
+  fetchSkinport,
+  fetchCsfloat,
+  fetchDmarket,
+  fetchShadowpay,
+  fetchWaxpeer,
+  fetchBitskins,
+];
 
 export default async function handler(req, res) {
   const { market_hash_name } = req.query;
@@ -13,30 +20,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'market_hash_name query param is required' });
   }
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
-
-  const results = await Promise.allSettled(
-    SOURCES.map((source) => fetchSource(baseUrl, source, market_hash_name))
-  );
+  const results = await Promise.allSettled(FETCHERS.map((fn) => fn(market_hash_name)));
 
   const prices = results
-    .map((result, i) => {
+    .map((result) => {
       if (result.status === 'fulfilled') {
         const { source, price, currency, url } = result.value;
         return { source, price, currency, url };
       }
-      return { source: SOURCES[i], price: null, currency: null, url: null, error: result.reason?.message };
+      return null;
     })
-    .filter((p) => p.price !== null);
+    .filter((p) => p !== null && p.price !== null);
 
-  const debug_raw = results.map((result, i) => ({
-    source: SOURCES[i],
-    status: result.status,
-    value: result.status === 'fulfilled' ? result.value : null,
-    error: result.status === 'rejected' ? result.reason?.message : null,
-  }));
-
-  return res.status(200).json({ market_hash_name, prices, debug_raw });
+  return res.status(200).json({ market_hash_name, prices });
 }
