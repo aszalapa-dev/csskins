@@ -29,12 +29,15 @@ export default async function handler(req, res) {
     const item = data?.items?.[market_hash_name] ?? null;
     const priceRaw = item?.min ?? null;
 
+    const sample = data?.items ? Object.entries(data.items).slice(0, 3) : [];
+
     return res.status(200).json({
       source: 'waxpeer',
       market_hash_name,
       price: priceRaw !== null ? priceRaw / 1000 : null,
       currency: 'USD',
       url: `https://waxpeer.com/csgo?search=${encodeURIComponent(market_hash_name)}`,
+      debug_sample: Object.fromEntries(sample),
     });
   } catch (err) {
     return res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
