@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --input-type=module)",
+      "Bash(node -e \"require\\('fs'\\).readFileSync\\('d:/site internet/csskins/api.js','utf8'\\)\")",
+      "WebFetch(domain:bymykel.github.io)",
+      "WebFetch(domain:bymykel.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json\")",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(json.dumps\\(data[:2], indent=2\\)\\)\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json\" -o \"d:/site internet/csskins/_tmp_skins.json\")",
+      "Bash(powershell -Command \"Get-Content 'd:/site internet/csskins/_tmp_skins.json' -Raw | ConvertFrom-Json | Select-Object -First 2 | ConvertTo-Json -Depth 5\")",
+      "Bash(curl -s \"https://prices.csgotrader.app/latest/prices_v6.json\" -o \"d:/site internet/csskins/_tmp_prices.json\")",
+      "Bash(powershell -Command \"Get-Content 'd:/site internet/csskins/_tmp_skins.json' -Encoding UTF8 | Select-String '\\\\\"name\\\\\"' | Select-Object -First 15\")"
+    ]
+  }
+}

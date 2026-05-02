@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSSkins — Skin Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style/skin-style.css">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────────────────────────── -->
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-mark">CS</div>CSSKINS
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Compare</a></li>
+    <li><a href="#">Deals</a></li>
+    <li><a href="#">Trending</a></li>
+    <li><a href="#">Price Alerts</a></li>
+  </ul>
+  <div class="nav-right">
+    <button class="nav-cta">Sign In</button>
+  </div>
+</nav>
+
+<!-- ─── BREADCRUMB ───────────────────────────────────────────────────────── -->
+<div class="breadcrumb" id="breadcrumb">
+  <a href="index.html">Home</a>
+  <span class="bc-sep">›</span>
+  <a href="index.html" id="bcCat">Skins</a>
+  <span class="bc-sep">›</span>
+  <span class="bc-cur" id="bcName">Loading…</span>
+</div>
+
+<!-- ─── MAIN CONTENT ─────────────────────────────────────────────────────── -->
+<div id="root">
+  <div class="loading-page">
+    <div class="spin"></div>
+    <span>Loading skin…</span>
+  </div>
+</div>
+
+<script src="js/core/utils.js"></script>
+<script src="js/ui/render-skin.js"></script>
+<script src="js/pages/skin-page.js"></script>
+<script type="module" src="js/viewer3d.js"></script>
+</body>
+</html>

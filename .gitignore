@@ -1,0 +1,7 @@
+# Clés API — ne jamais committer
+.env
+config.js
+
+# OS
+.DS_Store
+Thumbs.db

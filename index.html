@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSSkins — CS2 Skin Price Comparator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;900&display=swap" rel="stylesheet">
+<script src="js/db/skins.js"></script>
+<link rel="stylesheet" href="./style/index-style.css">
+</head>
+<body>
+
+<!-- ═══ NAV ═══════════════════════════════════════════════════════════════ -->
+<nav>
+  <div class="logo" onclick="goHome()">
+    <div class="logo-mark">CS</div>
+    CSSKINS
+  </div>
+
+  <ul class="nav-links" id="navLinks">
+    <!-- Populated by JS below -->
+  </ul>
+
+  <div class="nav-right">
+    <button class="nav-search-btn" onclick="focusSearch()">⌕ Search</button>
+    <button class="nav-cta">Sign In</button>
+  </div>
+</nav>
+
+<!-- ═══ STATUS BAR ════════════════════════════════════════════════════════ -->
+<div class="market-status">
+  <div class="market-status-left">
+    <div class="market-pill" id="pill-whitemarket"><div class="dot dot-yellow"></div><span class="pill-text">white.market — connecting…</span></div>
+    <span class="status-sep">·</span>
+    <div class="market-pill" id="pill-csfloat"><div class="dot dot-yellow"></div><span class="pill-text">CSFloat — connecting…</span></div>
+    <span class="status-sep">·</span>
+    <div class="market-pill"><div class="dot dot-green"></div>ByMykel Live</div>
+  </div>
+  <div class="status-right">
+    <span><strong id="statusSkinCount">—</strong> skins indexed</span>
+    <span><strong>4</strong> markets</span>
+    <span>EUR prices</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     VIEW — HOME
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-home" class="view active">
+
+  <div class="home-hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+
+    <h1>Find the <em>cheapest</em><br>CS2 skin</h1>
+    <p>Real-time price comparison across multiple markets. Inspect floats before you buy.</p>
+
+    <div class="hero-search-wrap" style="position:relative">
+      <input class="hero-search" id="heroSearch" placeholder="Search AK-47, Karambit, Doppler…" oninput="onHeroSearch(this.value)"/>
+      <span class="hero-search-icon">⌕</span>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-icon">◈</div>
+        <div class="hero-stat-val accent" id="heroStatSkins">2 092</div>
+        <div class="hero-stat-label">Skins tracked</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-icon">⊕</div>
+        <div class="hero-stat-val">4</div>
+        <div class="hero-stat-label">Markets live</div>
+      </div>
+      <div class="hero-stat-sep"></div>
+      <div class="hero-stat">
+        <div class="hero-stat-icon">↺</div>
+        <div class="hero-stat-val green">Live</div>
+        <div class="hero-stat-label">Price data</div>
+      </div>
+    </div>
+
+    <div class="trending-wrap" id="trendingWrap" style="display:none">
+      <div class="trending-label">Trending now</div>
+      <div class="trending-row" id="trendingRow"></div>
+    </div>
+  </div>
+
+  <div class="section-wrap">
+    <div class="section-title">Browse by weapon type</div>
+    <div class="cat-grid" id="catGrid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- Shared background orb layer for cat/skins views -->
+<div id="viewOrbs">
+  <div class="v-orb v-orb-1" id="vOrb1"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     VIEW — WEAPON LIST
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-cat" class="view">
+  <div class="breadcrumb" id="breadcrumb-cat"></div>
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-header-title" id="cat-title">—</div>
+      <div class="page-header-sub" id="cat-sub">—</div>
+    </div>
+  </div>
+  <div class="weapon-grid-wrap">
+    <div class="weapon-grid" id="weaponGrid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     VIEW — SKIN LIST
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-skins" class="view">
+  <div class="breadcrumb" id="breadcrumb-skins"></div>
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-header-title" id="skins-title">—</div>
+      <div class="page-header-sub" id="skins-sub">—</div>
+    </div>
+    <div class="page-header-right">
+      <div class="sort-options" id="sortOptions">
+        <button class="sort-btn active" onclick="setSkinSort(this,'date')">Newest</button>
+        <button class="sort-btn" onclick="setSkinSort(this,'rarity')">Rarity</button>
+        <button class="sort-btn" onclick="setSkinSort(this,'name')">A → Z</button>
+        <button class="sort-btn" onclick="setSkinSort(this,'price')">Cheapest</button>
+        <button class="sort-btn" onclick="setSkinSort(this,'price-desc')">Most expensive</button>
+      </div>
+    </div>
+  </div>
+  <div class="skin-list-wrap">
+    <div class="sort-bar">
+      <div class="result-count"><strong id="myResultCount">—</strong> skins</div>
+    </div>
+    <div class="skin-grid" id="skinGrid"></div>
+    <div class="my-pagination" id="myPagination"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-mark">CS</div>
+          CSSKINS
+        </div>
+        <p class="footer-tagline">Real-time CS2 skin price comparison across DMarket, CSFloat, Skinport, white.market and more. Find the best deal before you buy.</p>
+      </div>
+      <div class="footer-markets">
+        <div>
+          <div class="footer-col-title">Marketplaces</div>
+          <div class="footer-links">
+            <a class="footer-link" href="https://dmarket.com" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#6c9fff"></span>DMarket</a>
+            <a class="footer-link" href="https://skinport.com" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#00d882"></span>Skinport</a>
+            <a class="footer-link" href="https://cs.money" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#f0a832"></span>CS.Money</a>
+            <a class="footer-link" href="https://white.market" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#e0e0e0"></span>white.market</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Also on</div>
+          <div class="footer-links">
+            <a class="footer-link" href="https://buff.163.com" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#9147ff"></span>Buff163</a>
+            <a class="footer-link" href="https://bitskins.com" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#ff6b6b"></span>Bitskins</a>
+            <a class="footer-link" href="https://csfloat.com" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#00d882"></span>CSFloat</a>
+            <a class="footer-link" href="https://steamcommunity.com/market" target="_blank" rel="noopener"><span class="footer-link-dot" style="background:#1b9aff"></span>Steam Market</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-disclaimer">CSSkins is not affiliated with Valve Corporation. CS2™ and Counter-Strike™ are trademarks of Valve Corporation. All skin images are property of Valve Corporation.</span>
+      <span>© 2026 CSSkins</span>
+    </div>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script src="js/core/utils.js"></script>
+<script src="js/ui/loading.js"></script>
+<script src="js/ui/pagination.js"></script>
+<script src="js/data/fetch-skins.js"></script>
+<script src="js/data/fetch-prices.js"></script>
+<script src="js/ui/nav.js"></script>
+<script src="js/ui/render-index.js"></script>
+<script src="js/pages/index-page.js"></script>
+</body>
+</html>
