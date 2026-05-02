@@ -22,6 +22,7 @@ export default async function handler(req, res) {
     market_hash_name,
     limit: '1',
     sort_by: 'lowest_price',
+    type: 'buy_now',
   });
 
   try {

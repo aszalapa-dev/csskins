@@ -35,7 +35,6 @@ export default async function handler(req, res) {
       price: priceRaw !== null ? priceRaw / 1000 : null,
       currency: 'USD',
       url: `https://waxpeer.com/csgo?search=${encodeURIComponent(market_hash_name)}`,
-      debug_keys: Object.keys(data.items ?? {}).slice(0, 3),
     });
   } catch (err) {
     return res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
