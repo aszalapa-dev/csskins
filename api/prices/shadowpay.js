@@ -11,12 +11,12 @@ export default async function handler(req, res) {
   }
 
   const params = new URLSearchParams({
-    steam_market_hash_name: market_hash_name,
-    limit: '1',
+    steam_app_id: '730',
+    search: market_hash_name,
   });
 
   try {
-    const r = await fetch(`https://api.shadowpay.com/api/v2/user/items/sell?${params}`, {
+    const r = await fetch(`https://api.shadowpay.com/api/v2/user/items?${params}`, {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         Accept: 'application/json',

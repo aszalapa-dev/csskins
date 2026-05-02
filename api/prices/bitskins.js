@@ -10,19 +10,19 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'market_hash_name query param is required' });
   }
 
-  const params = new URLSearchParams({
-    market_hash_name,
-    skin_search: market_hash_name,
-    per_page: '1',
-    page: '1',
-  });
-
   try {
-    const r = await fetch(`https://api.bitskins.com/market/insell/730?${params}`, {
+    const r = await fetch('https://api.bitskins.com/market/search/730', {
+      method: 'POST',
       headers: {
-        'X-Apikey': apiKey,
+        'x-apikey': apiKey,
+        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
+      body: JSON.stringify({
+        limit: 5,
+        offset: 0,
+        where: { skin_name: [market_hash_name] },
+      }),
     });
 
     if (!r.ok) {
