@@ -26,11 +26,8 @@ export default async function handler(req, res) {
     }
 
     const data = await r.json();
-    const item = data[market_hash_name] ?? null;
+    const item = data.items?.[market_hash_name] ?? null;
     const priceRaw = item?.min ?? null;
-
-    const topLevelKeys = Object.keys(data).slice(0, 5);
-    const firstEntry = topLevelKeys[0] ? { key: topLevelKeys[0], value: data[topLevelKeys[0]] } : null;
 
     return res.status(200).json({
       source: 'waxpeer',
@@ -38,9 +35,6 @@ export default async function handler(req, res) {
       price: priceRaw !== null ? priceRaw / 1000 : null,
       currency: 'USD',
       url: `https://waxpeer.com/csgo?search=${encodeURIComponent(market_hash_name)}`,
-      debug_item: item,
-      debug_top_keys: topLevelKeys,
-      debug_first_entry: firstEntry,
     });
   } catch (err) {
     return res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
