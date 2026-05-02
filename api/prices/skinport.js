@@ -12,8 +12,7 @@ export default async function handler(req, res) {
   }
 
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const params = new URLSearchParams({ market_hash_name, app_id: '730' });
-  const upstreamUrl = `https://api.skinport.com/v1/items?${params}`;
+  const upstreamUrl = `https://api.skinport.com/v1/items?app_id=730&currency=EUR`;
 
   try {
     const r = await fetch(upstreamUrl, {
@@ -35,13 +34,13 @@ export default async function handler(req, res) {
     }
 
     const data = JSON.parse(body);
-    const item = Array.isArray(data) ? data[0] : null;
+    const item = Array.isArray(data) ? data.find((i) => i.market_hash_name === market_hash_name) ?? null : null;
 
     return res.status(200).json({
       source: 'skinport',
       market_hash_name,
       price: item?.min_price ?? null,
-      currency: 'USD',
+      currency: 'EUR',
       url: item ? `https://skinport.com/market?search=${encodeURIComponent(market_hash_name)}` : null,
     });
   } catch (err) {
