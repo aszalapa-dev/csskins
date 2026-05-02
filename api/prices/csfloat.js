@@ -1,3 +1,6 @@
+const cache = new Map();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
 export default async function handler(req, res) {
   const apiKey = process.env.CSFLOAT_API_KEY;
 
@@ -10,11 +13,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'market_hash_name query param is required' });
   }
 
+  const cached = cache.get(market_hash_name);
+  if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+    return res.status(200).json(cached.data);
+  }
+
   const params = new URLSearchParams({
     market_hash_name,
-    sort_by: 'lowest_price',
-    type: 'buy_now',
     limit: '1',
+    sort_by: 'lowest_price',
   });
 
   try {
@@ -33,13 +40,17 @@ export default async function handler(req, res) {
     const item = data?.data?.[0];
     const priceRaw = item?.price ?? null;
 
-    return res.status(200).json({
+    const result = {
       source: 'csfloat',
       market_hash_name,
       price: priceRaw !== null ? priceRaw / 100 : null,
       currency: 'USD',
       url: `https://csfloat.com/buy?market_hash_name=${encodeURIComponent(market_hash_name)}`,
-    });
+    };
+
+    cache.set(market_hash_name, { ts: Date.now(), data: result });
+
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(502).json({ error: 'Upstream fetch failed', detail: err.message });
   }
