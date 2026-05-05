@@ -1,305 +1,418 @@
-// Responsibility: build all HTML for the skin detail page (redesigned)
+// Responsibility: build all HTML for the skin detail page
 
 const W_BADGE_CLS = { FN:'w-fn', MW:'w-mw', FT:'w-ft', WW:'w-ww', BS:'w-bs' };
 
-const RARITY_GLOW = {
-  covert:     'rgba(235,75,75,.12)',
-  classified: 'rgba(145,71,255,.10)',
-  restricted: 'rgba(75,105,255,.10)',
-  milspec:    'rgba(75,134,219,.08)',
+const MP_META = {
+  'white.market': { logo:'WM', logoBg:'#0b1a12', logoColor:'#00d882', stars: 4.7, reviews:'2.1k', partner: true  },
+  'CSFloat':      { logo:'CF', logoBg:'#0d1520', logoColor:'#5b8af5', stars: 4.6, reviews:'5.2k', partner: false },
+  'DMarket':      { logo:'DM', logoBg:'#0c1624', logoColor:'#4a9eff', stars: 4.5, reviews:'8.3k', partner: false },
 };
 
 const MP_SOURCE_META = {
-  skinport:  { name: 'Skinport',  abbr: 'SP', bg: '#0d1822', color: '#f79a3f', stars: 4.6 },
-  csfloat:   { name: 'CSFloat',   abbr: 'CF', bg: '#0d1520', color: '#5b8af5', stars: 4.8 },
-  dmarket:   { name: 'DMarket',   abbr: 'DM', bg: '#0c1624', color: '#4a9eff', stars: 4.5 },
-  shadowpay: { name: 'Shadowpay', abbr: 'SH', bg: '#0d1a14', color: '#2ecc71', stars: 4.3 },
-  waxpeer:   { name: 'Waxpeer',   abbr: 'WP', bg: '#14100a', color: '#e88b34', stars: 4.4 },
-  bitskins:  { name: 'BitSkins',  abbr: 'BK', bg: '#0d0d20', color: '#7b68ee', stars: 4.2 },
+  skinport:  { name: 'Skinport',  abbr: 'SP', bg: '#0d1822', color: '#f79a3f' },
+  csfloat:   { name: 'CSFloat',   abbr: 'CF', bg: '#0d1520', color: '#5b8af5' },
+  dmarket:   { name: 'DMarket',   abbr: 'DM', bg: '#0c1624', color: '#4a9eff' },
+  shadowpay: { name: 'Shadowpay', abbr: 'SH', bg: '#0d1a14', color: '#2ecc71' },
+  waxpeer:   { name: 'Waxpeer',   abbr: 'WP', bg: '#14100a', color: '#e88b34' },
+  bitskins:  { name: 'BitSkins',  abbr: 'BK', bg: '#0d0d20', color: '#7b68ee' },
 };
 
-const USD_TO_EUR = 0.92;
+const INFO_ICONS = {
+  tag:     `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h5.5l6 6-5.5 5.5-6-6V2z"/><circle cx="5" cy="5" r=".9" fill="currentColor" stroke="none"/></svg>`,
+  target:  `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="1" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="15"/><line x1="1" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="15" y2="8"/></svg>`,
+  gun:     `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 7h9v2.5H7.5L7 12H5l-.5-2.5H1V7z"/><rect x="9.5" y="6" width="5" height="2.5" rx=".6"/></svg>`,
+  palette: `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1a7 7 0 0 0 0 14c.7 0 1-.4 1-1v-1.5c0-.5.5-1 1-1H12a3 3 0 0 0 0-6A7 7 0 0 0 8 1z"/><circle cx="5.5" cy="6" r=".7" fill="currentColor" stroke="none"/><circle cx="8" cy="4" r=".7" fill="currentColor" stroke="none"/><circle cx="10.5" cy="6" r=".7" fill="currentColor" stroke="none"/></svg>`,
+  hash:    `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="5.5" y1="2" x2="4.5" y2="14"/><line x1="11.5" y1="2" x2="10.5" y2="14"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/></svg>`,
+  shuffle: `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h3l7 8h3"/><path d="M14 4h-3L6 8.5"/><polyline points="12,2 14,4 12,6"/><polyline points="12,10 14,12 12,14"/></svg>`,
+  monitor: `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="2" width="14" height="9.5" rx="1.5"/><line x1="5" y1="15" x2="11" y2="15"/><line x1="8" y1="11.5" x2="8" y2="15"/></svg>`,
+  star:    `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="8,2 10,6.5 15,6.5 11,9.5 12.5,14.5 8,11.5 3.5,14.5 5,9.5 1,6.5 6,6.5"/></svg>`,
+  users:   `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5.5" r="2.5"/><path d="M1 14c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5"/><circle cx="12" cy="5.5" r="2" opacity=".5"/><path d="M14 13.5c0-2-1.3-3.5-3-4" opacity=".5"/></svg>`,
+  box:      `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13.5,5 8,7.5 2.5,5"/><path d="M2.5 5L8 2.5l5.5 2.5v6L8 13.5 2.5 11V5z"/><line x1="8" y1="7.5" x2="8" y2="13.5"/></svg>`,
+  calendar: `<svg class="info-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="3" width="13" height="11.5" rx="1.5"/><line x1="1.5" y1="7" x2="14.5" y2="7"/><line x1="5" y1="1.5" x2="5" y2="4.5"/><line x1="11" y1="1.5" x2="11" y2="4.5"/></svg>`,
+};
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function escH(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escA(s) { return String(s ?? '').replace(/"/g,'&quot;'); }
+const PATTERN_VAR_RE = /doppler|case hardened|marble fade|tiger tooth|lore|gamma|vanilla|ruby|sapphire|black pearl|emerald|crimson web|damascus|rust coat/i;
 
-function fmtPrice(n, currency) {
-  if (n == null) return '—';
-  return (currency === 'USD' ? '$' : '€') + n.toFixed(2);
-}
-function deltaStr(d, currency) {
-  if (Math.abs(d) < 0.005) return '<span style="color:var(--green)">cheapest</span>';
-  return '+' + fmtPrice(d, currency);
-}
+function render(skin) {
+  if (window._viewer) { window._viewer.dispose(); window._viewer = null; }
+  window._is3d = false;
+  window._skin = skin;
+  window._currentCategory = 'normal';
 
-function floatToWear(f) {
-  if (f < 0.07) return 'FN';
-  if (f < 0.15) return 'MW';
-  if (f < 0.38) return 'FT';
-  if (f < 0.45) return 'WW';
-  return 'BS';
-}
-
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-function buildHero(skin) {
-  const catLabel  = CAT_LABELS[skin.category] || 'Skins';
-  const rarLabel  = RARITY_LABELS[skin.rarity] || '';
-  const wearFull  = WN[skin.wear] || skin.wear || '';
-  const weaponName = skin.weaponName || skin.name || '';
-  const wp   = skin.wearPrices || {};
-  const vals = Object.values(wp).filter(e => e?.priceEur > 0);
-  const best = vals.length ? vals.reduce((a,b) => a.priceEur<=b.priceEur ? a : b) : null;
-  const minFloat = skin.minFloat ?? 0.00;
-  const maxFloat = skin.maxFloat ?? 1.00;
-  const glow = RARITY_GLOW[skin.rarity] || 'rgba(255,255,255,.04)';
-
-  const hasST = skin.stattrak === true || WO.some(w => (skin.stWearPrices||{})[w]);
-  const hasSV = skin.souvenir === true || WO.some(w => (skin.svWearPrices||{})[w]);
-  const marketCount = Object.keys(MP_SOURCE_META).length;
-
-  return `
-<div class="hero">
-  <div class="hero-inner">
-    <div>
-      <div class="hero-meta">
-        <span class="kicker">${escH(catLabel)}<span class="dot"></span>${escH(weaponName)}<span class="dot"></span>${escH(rarLabel)}</span>
-      </div>
-      <h1 class="skin-h1">${escH(weaponName)}${skin.variant ? ' <span class="pipe">|</span> <span class="variant">' + escH(skin.variant) + '</span>' : ''}</h1>
-      <div class="hero-tags">
-        <span class="hero-tag rar-${skin.rarity}"><span class="tag-dot"></span>${escH(rarLabel)}</span>
-        <span class="hero-tag">${escH(wearFull)}</span>
-        ${skin.collection ? '<span class="hero-tag">' + escH(skin.collection) + '</span>' : ''}
-        ${hasST ? '<span class="hero-tag" style="color:var(--st);border-color:rgba(255,140,0,.3);background:rgba(255,140,0,.08)">StatTrak™</span>' : ''}
-        <span class="hero-tag">CS2</span>
-      </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-l">From</div>
-          <div class="hero-stat-v green" id="heroFromPrice">${best ? escH(best.priceStr) : '—'}</div>
-          <div class="hero-stat-s">${marketCount} markets</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-l">Float range</div>
-          <div class="hero-stat-v">${minFloat.toFixed(2)}–${maxFloat.toFixed(2)}</div>
-          <div class="hero-stat-s">5 wear tiers</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-l">Collection</div>
-          <div class="hero-stat-v accent" style="font-size:13px;font-weight:700">${escH(skin.collection || '—')}</div>
-          <div class="hero-stat-s">${escH(wearFull)}</div>
-        </div>
-      </div>
-    </div>
-    <div class="hero-img-wrap">
-      <div class="hero-img-bg" style="background:radial-gradient(ellipse at 50% 50%, ${glow}, transparent 65%)"></div>
-      <img class="hero-img-real" src="${escA(skin.image)}" alt="${escA(weaponName + (skin.variant ? ' | '+skin.variant : ''))}" onerror="this.style.opacity='.06'" />
-      <div class="hero-img-actions" id="imgBtns">
-        <button class="hero-img-btn" onclick="toggleMirror()">↺ Flip</button>
-        <button class="hero-img-btn" id="btn3d" onclick="toggle3DView()">⬡ 3D</button>
-        <button class="hero-img-btn" onclick="copyURL()">🔗 Share</button>
-      </div>
-    </div>
-  </div>
-</div>`;
-}
-
-// ─── Viewer card ──────────────────────────────────────────────────────────────
-function buildViewerCard(skin) {
-  const floatNum = parseFloat(skin.float) || WF[skin.wear] || 0.15;
-  const floatStr = skin.float || floatNum.toFixed(4);
+  const catLabel = CAT_LABELS[skin.category] || 'Skins';
+  const rarLabel = RARITY_LABELS[skin.rarity] || 'Common';
   const wearFull = WN[skin.wear] || skin.wear || '';
-  const weaponName = skin.weaponName || skin.name || '';
-  return `
-<div class="viewer-card">
-  <div class="viewer-tabs" id="viewTabs">
-    <button class="viewer-tab active" data-tab="wear" onclick="setViewTab('wear')">Wear preview</button>
-    <button class="viewer-tab" data-tab="3d" onclick="setViewTab('3d')">3D View</button>
-    <button class="viewer-tab" data-tab="inspect" onclick="setViewTab('inspect')">Inspect</button>
-    <div class="viewer-tab-actions">
-      <span class="viewer-tab-pill"><span class="live-dot"></span>Live</span>
-    </div>
-  </div>
-  <div class="viewer-stage" id="viewerStage">
-    <img id="skinImg"
-         src="${escA(skin.image)}"
-         alt="${escA(weaponName + (skin.variant ? ' | '+skin.variant : ''))}"
-         onerror="this.style.opacity='.08'"
-         onclick="toggleZoom()" />
-    <div id="viewer3d" class="viewer3d" style="display:none">
-      <div class="vd-drop" id="viewerDrop">
-        <div class="vd-icon">⬡</div>
-        <div class="vd-title">CS2 3D Viewer</div>
-        <div class="vd-hint">Drop a <strong>.glb</strong> weapon model here</div>
-        <div class="vd-sub">Also drop textures: albedo · wear_mask</div>
-      </div>
-      <canvas id="viewer3dCanvas" style="display:none"></canvas>
-    </div>
-    <div id="inspectFrame" class="inspect-frame"></div>
-    <div class="viewer-actions" style="position:absolute;top:12px;right:12px;display:flex;gap:5px;z-index:2">
-      <button class="va-btn" onclick="toggleZoom()">+ Zoom</button>
-    </div>
-  </div>
-  <div class="viewer-foot">
-    <div>Float: <strong id="floatDisplay">${escH(floatStr)}</strong> · <span id="floatWearTxt">${escH(wearFull)}</span></div>
-    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2)">
-      <span class="live-dot" style="width:5px;height:5px;box-shadow:none"></span>white.market · live
-    </div>
-  </div>
-</div>`;
-}
-
-// ─── Float card ───────────────────────────────────────────────────────────────
-function buildFloatCard(skin) {
   const floatNum = parseFloat(skin.float) || WF[skin.wear] || 0.15;
   const floatStr = skin.float || floatNum.toFixed(4);
-  const wear     = floatToWear(floatNum);
-  const wearFull = WN[wear] || wear;
   const minFloat = skin.minFloat ?? 0.00;
   const maxFloat = skin.maxFloat ?? 1.00;
-  return `
-<div class="float-card">
-  <div class="float-card-hd">
-    <span class="float-card-title">Float Value</span>
-    <span class="float-card-range">range ${minFloat.toFixed(2)}–${maxFloat.toFixed(2)}</span>
-  </div>
-  <div class="float-row1">
-    <div class="float-num-wrap">
-      <div class="float-num" id="floatNum">${escH(floatStr)}</div>
-      <div class="float-wear-txt" id="floatWearName">${escH(wearFull)}</div>
-    </div>
-    <span class="float-wear-pill w-${wear}" id="floatWearPill">${wear}</span>
-  </div>
-  <div class="float-track-wrap">
-    <div class="float-track" id="floatTrack"></div>
-    <input type="range" id="floatSlider" class="float-range"
-           min="0" max="1" step="0.0001" value="${floatNum}" />
-  </div>
-  <div class="float-ticks">
-    <span>FN</span><span>MW</span><span>FT</span><span>WW</span><span>BS</span>
-  </div>
-</div>`;
-}
 
-// ─── Wear grid (5-col) ────────────────────────────────────────────────────────
-function buildWearGrid(skin) {
   const hasST = skin.stattrak === true || WO.some(w => (skin.stWearPrices||{})[w]);
   const hasSV = skin.souvenir === true || WO.some(w => (skin.svWearPrices||{})[w]);
 
-  return `
-<div class="card" id="wearPricesCard">
-  <div class="card-hd">
-    <div class="card-hd-title"><span class="live-dot"></span>Prices by wear</div>
-    <div class="card-hd-meta">white.market · live</div>
-  </div>
-  ${(hasST || hasSV) ? `
-  <div class="variant-tabs" id="variantTabs">
-    <button class="variant-tab active" data-variant="normal" onclick="setVariant('normal')">Normal</button>
-    ${hasST ? '<button class="variant-tab st" data-variant="st" onclick="setVariant(\'st\')">StatTrak™</button>' : ''}
-    ${hasSV ? '<button class="variant-tab sv" data-variant="sv" onclick="setVariant(\'sv\')">Souvenir</button>' : ''}
-  </div>` : ''}
-  <div id="wearGridBody">${buildWearCells(skin, 'normal')}</div>
-</div>`;
-}
+  document.title = skin.name + (skin.variant ? ' | ' + skin.variant : '') + ' — CSSkins';
+  document.getElementById('bcCat').textContent  = catLabel;
+  document.getElementById('bcName').textContent = skin.name + (skin.variant ? ' | ' + skin.variant : '');
 
-function buildWearCells(skin, variant) {
-  const map = variant === 'st' ? (skin.stWearPrices || {})
-            : variant === 'sv' ? (skin.svWearPrices || {})
-            : (skin.wearPrices || {});
-  const have = WO.filter(w => map[w]);
-  const best = have.length ? have.reduce((a,b) => map[a].priceEur <= map[b].priceEur ? a : b) : null;
-
-  const wearColors = {
-    FN: { bg: 'rgba(0,216,130,.14)',  c: '#00d882' },
-    MW: { bg: 'rgba(125,200,78,.14)', c: '#7dc84e' },
-    FT: { bg: 'rgba(255,231,96,.14)', c: '#d4bd30' },
-    WW: { bg: 'rgba(240,152,50,.14)', c: '#f09832' },
-    BS: { bg: 'rgba(235,75,75,.14)',  c: '#eb4b4b' },
-  };
-
-  return `<div class="wear-grid">${WO.map(w => {
-    const p = map[w];
-    if (!p) return `
-      <div class="wear-cell unavail">
-        <span class="wear-cell-badge" style="background:rgba(255,255,255,.05);color:var(--muted2)">${w}</span>
-        <span class="wear-cell-name">${WN[w]}</span>
-        <span class="wear-cell-price">—</span>
-      </div>`;
-    const isBest = w === best;
-    const wc = wearColors[w];
-    return `
-      <a class="wear-cell${isBest ? ' wc-best' : ''}" href="${escA(p.url)}" target="_blank" rel="noopener">
-        <span class="wear-cell-badge" style="background:${wc.bg};color:${wc.c}">${w}</span>
-        <span class="wear-cell-name">${WN[w]}</span>
-        <span class="wear-cell-price">${escH(p.priceStr)}</span>
-        ${isBest ? '<span class="wear-cell-best-tag">Best</span>' : ''}
-      </a>`;
-  }).join('')}</div>`;
-}
-
-// ─── Buy hero card ────────────────────────────────────────────────────────────
-function buildBuyHero(skin) {
   const wp      = skin.wearPrices || {};
-  const vals    = Object.values(wp).filter(e => e?.priceEur > 0);
-  const best    = vals.length ? vals.reduce((a,b) => a.priceEur<=b.priceEur ? a : b) : null;
-  const priceStr= best?.priceStr || '—';
-  const url     = best?.url || '#';
-  const siteName= best?.url?.includes('white.market') ? 'white.market' : 'Market';
-  const m       = { name: siteName, abbr: 'WM', bg: '#0b1a12', color: '#00d882', stars: 4.7 };
+  const wpVals  = Object.values(wp).filter(e => e && e.priceEur > 0);
+  const bestEntry = wpVals.length
+    ? wpVals.reduce((a,b) => a.priceEur<=b.priceEur ? a : b)
+    : skin.prices?.[0] || null;
+  const bestStr  = bestEntry?.priceStr || bestEntry?.price || '—';
+  const bestSite = bestEntry?.url?.includes('white.market') ? 'white.market' : (skin.prices?.[0]?.site || 'Market');
 
-  return `
-<div class="buy-hero">
-  <div class="buy-eyebrow"><span class="live-dot"></span>Best price right now</div>
-  <div class="buy-row">
-    <div class="buy-price-col">
-      <div class="buy-price" id="buyHeroPrice">${escH(priceStr)}</div>
-      <div class="buy-orig" id="buyHeroSub">Cheapest available · <strong>${escH(siteName)}</strong></div>
+  const catSwitchHtml = (hasST || hasSV) ? `
+  <div class="cat-switch" id="catSwitch">
+    <button class="cat-btn active" data-cat="normal" onclick="setCategory('normal')">Normal</button>
+    ${hasST ? '<button class="cat-btn st" data-cat="st" onclick="setCategory(\'st\')">StatTrak™</button>' : ''}
+    ${hasSV ? '<button class="cat-btn sv" data-cat="sv" onclick="setCategory(\'sv\')">Souvenir</button>' : ''}
+  </div>` : '';
+
+  document.getElementById('root').innerHTML = `
+<div class="skin-header">
+  <div class="skin-header-inner">
+    <div class="skin-cat-label">${escH(catLabel)}</div>
+    <h1 class="skin-h1">${escH(skin.name)}${skin.variant ? ' | <span class="variant">' + escH(skin.variant) + '</span>' : ''}</h1>
+    <div class="skin-meta">
+      <span class="badge-rarity r-${skin.rarity}">${rarLabel}</span>
+      <span class="chip">${escH(wearFull)}</span>
+      ${skin.collection ? '<span class="chip">' + escH(skin.collection) + '</span>' : ''}
     </div>
-    <div class="buy-source" id="buyHeroSource">
-      <div class="buy-source-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
-      <div class="buy-source-info">
-        <span class="buy-source-name">${escH(m.name)}</span>
-        <span class="buy-source-rating">★★★★½ ${m.stars}</span>
+  </div>
+</div>
+
+<div class="page">
+  <div class="left">
+    <div class="img-card">
+      <div class="view-tabs" id="viewTabs">
+        <button class="view-tab active" data-tab="wear" onclick="setViewTab('wear')">Wear</button>
+        <button class="view-tab" data-tab="3d" onclick="setViewTab('3d')">3D View</button>
+      </div>
+      <div class="img-stage">
+        <img id="skinImg" src="${escA(skin.image)}"
+             alt="${escA((skin.name||'') + (skin.variant ? ' | '+skin.variant : ''))}"
+             onerror="this.style.opacity='.08'"
+             onclick="toggleZoom()" />
+        <div id="viewer3d" class="viewer3d">
+          <div class="vd-drop" id="viewerDrop">
+            <div class="vd-icon">⬡</div>
+            <div class="vd-title">CS2 3D Viewer</div>
+            <div class="vd-hint">Drop a <strong>.glb</strong> weapon model here</div>
+            <div class="vd-sub">Also drop textures: albedo · wear_mask</div>
+          </div>
+          <canvas id="viewer3dCanvas" style="display:none"></canvas>
+        </div>
+        <div id="inspectFrame" class="inspect-frame"></div>
+        <div class="img-btns" id="imgBtns">
+          <button class="img-btn" onclick="toggleMirror()">↺ Flip</button>
+          <button class="img-btn" id="btn3d" onclick="toggle3DView()">⬡ 3D</button>
+          <button class="img-btn" onclick="copyURL()">🔗 Share</button>
+        </div>
+      </div>
+      <div class="viewer-controls" id="viewerControls" style="display:none">
+        <div class="vc-left">
+          <span class="vc-label">Pattern <span id="seedVal">1</span></span>
+          <input type="range" id="seedSlider" class="vc-range" min="1" max="1000" step="1" value="1">
+        </div>
+        <div class="vc-finish">
+          <button class="vf-btn active" data-finish="0" onclick="setViewerFinish(0)">Custom Paint</button>
+          <button class="vf-btn" data-finish="1" onclick="setViewerFinish(1)">Patina</button>
+          <button class="vf-btn" data-finish="2" onclick="setViewerFinish(2)">Gunsmith</button>
+        </div>
+      </div>
+      <div class="img-bar">
+        <div class="float-label">Float: <strong>${escH(floatStr)}</strong> · ${escH(wearFull)}</div>
+        <div class="float-pill">white.market · Live</div>
       </div>
     </div>
+
+    <div class="float-section">
+      <div class="float-sec-title">Float Value</div>
+      <div class="float-row">
+        <div class="float-num" id="floatDisplay">${escH(floatStr)}</div>
+        <div class="float-wear-txt" id="floatWearTxt">${escH(wearFull)}</div>
+      </div>
+      <div class="float-track-wrap">
+        <div class="float-track" id="floatTrack"></div>
+        <input type="range" id="floatSlider" class="float-range"
+               min="0" max="1" step="0.0001" value="${floatNum}" />
+      </div>
+      <div class="float-ticks">
+        <span>FN</span><span>MW</span><span>FT</span><span>WW</span><span>BS</span>
+      </div>
+      <div class="float-price-row" id="floatPriceRow"></div>
+    </div>
+
+    <div class="prices-card">
+      <div class="prices-head">
+        <div class="prices-head-title">Prices by wear</div>
+        <div class="prices-head-src">
+          <div class="live-dot"></div>
+          white.market · Live
+        </div>
+      </div>
+      ${buildWearRows(skin)}
+    </div>
   </div>
-  <a class="buy-cta" id="buyHeroCta" href="${escA(url)}" target="_blank" rel="noopener">
-    Buy on ${escH(siteName)}
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-  </a>
+
+  <div class="right">
+    ${catSwitchHtml}
+    <div class="best-card">
+      <div class="best-eyebrow"><div class="live-dot"></div> Best price right now</div>
+      <div class="best-price-big">${escH(bestStr)}</div>
+      <div class="best-sub">Cheapest available · <strong>${escH(bestSite)}</strong></div>
+      <a class="best-buy-btn" href="${bestEntry?.url ? escA(bestEntry.url) : '#'}" target="_blank" rel="noopener">
+        Buy on ${escH(bestSite)} →
+      </a>
+    </div>
+
+    <div class="offers-card">
+      <div class="offers-head">
+        <div class="offers-title">Active Offers</div>
+        <div class="offers-cnt" id="offersCnt"></div>
+      </div>
+      <div id="offersBody">${buildOffersForWear(skin, 'normal', floatToWear(floatNum))}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-head">
+        <div class="info-head-title">Skin Info</div>
+      </div>
+      ${buildSkinInfo(skin)}
+    </div>
+  </div>
+</div>
+
+<div class="extra-sections">
+  <div class="extra-card" id="mpPricesCard">
+    <div class="extra-head">Prix par marketplace</div>
+    <div id="mpPricesBody" class="mp-loader-wrap">
+      <div class="mp-spin"></div>
+    </div>
+  </div>
+  <div class="extra-card" id="colorsCard">
+    <div class="extra-head">Colors</div>
+    <div class="colors-swatches" id="colorsSwatches">
+      <span class="swatch-loading">Extracting colors…</span>
+    </div>
+  </div>
+  ${buildContainers(skin)}
+  ${buildGallery(skin)}
 </div>`;
+
+  const n  = document.querySelectorAll('.offer-row:not(.oos)').length;
+  const el = document.getElementById('offersCnt');
+  if (el) el.textContent = n + ' marketplace' + (n !== 1 ? 's' : '');
+
+  initFloatSlider(skin);
+  initColors(skin);
+  initContainers(skin);
+  initMarketplacePrices(skin);
 }
 
-// ─── Info grid (2-col) ────────────────────────────────────────────────────────
-function buildInfoGrid(skin) {
-  const finish   = skin.finishName || skin.variant || '';
-  const relDate  = fmtReleaseDate(skin.releaseDate);
-  const rows = [
-    { l: 'Category', v: 'Skin' },
-    { l: 'Type',     v: CAT_LABELS[skin.category] || '—',   href: skin.category ? 'index.html?type='+encodeURIComponent(skin.category) : null },
-    { l: 'Weapon',   v: skin.weaponName || skin.name,       href: (skin.weaponName||skin.name) ? 'index.html?weapon='+encodeURIComponent(skin.weaponName||skin.name)+'&type='+encodeURIComponent(skin.category||'') : null },
-    { l: 'Finish',   v: finish,                              href: finish ? 'index.html?search='+encodeURIComponent(finish) : null },
-    { l: 'Catalog',  v: skin.paintIndex ? '#'+skin.paintIndex : '—' },
-    { l: 'Model',    v: skin.legacyModel ? 'Legacy / CS2' : 'CS2' },
-    { l: 'Rarity',   v: RARITY_LABELS[skin.rarity] || '—', cls: 'rar-'+skin.rarity, href: skin.rarity ? 'index.html?rarity='+encodeURIComponent(skin.rarity) : null },
-    { l: 'Team',     v: skin.team || '—' },
-    { l: 'Collection', v: skin.collection || '—',           href: skin.collection ? 'index.html?collection='+encodeURIComponent(skin.collection) : null },
-    { l: 'Released', v: relDate || '—' },
-  ].filter(r => r.v && r.v !== '—');
+function buildWearRows(skin) {
+  const wp = skin.wearPrices   || {};
+  const sp = skin.stWearPrices || {};
+  const sv = skin.svWearPrices || {};
 
-  return `
-<div class="card">
-  <div class="card-hd"><div class="card-hd-title">Skin info</div></div>
-  <div class="info-grid">
-    ${rows.map(r => {
-      const cls = 'info-v' + (r.cls ? ' '+r.cls : '');
-      const val = r.href
-        ? `<a class="${cls} info-link" href="${escA(r.href)}">${escH(r.v)}</a>`
-        : `<span class="${cls}">${escH(r.v)}</span>`;
-      return `<div class="info-row"><span class="info-l">${escH(r.l)}</span>${val}</div>`;
-    }).join('')}
-  </div>
-</div>`;
+  const hasNormal = WO.some(w => wp[w]);
+  const hasST     = WO.some(w => sp[w]);
+  const hasSV     = WO.some(w => sv[w]);
+
+  if (!hasNormal && !hasST && !hasSV) {
+    return (skin.prices || []).map(p => `
+      <a class="w-row best" href="${escA(p.url)}" target="_blank" rel="noopener">
+        <div class="w-badge w-ft">—</div>
+        <div class="w-name">${escH(p.site||'Market')}</div>
+        <div class="w-price">${escH(p.price||'—')}</div>
+        <div class="w-buy">Buy →</div>
+      </a>`).join('');
+  }
+
+  let html = '';
+
+  if (hasNormal) {
+    const have = WO.filter(w => wp[w]);
+    const best = have.reduce((a,b) => wp[a].priceEur <= wp[b].priceEur ? a : b);
+    html += WO.map(w => {
+      const p = wp[w];
+      const isBest = w === best;
+      if (!p) return `
+        <div class="w-row unavail">
+          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+          <div class="w-name">${WN[w]}</div>
+          <div class="w-na">—</div>
+        </div>`;
+      return `
+      <a class="w-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
+        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+        <div class="w-name">${WN[w]}</div>
+        <div class="w-price">${escH(p.priceStr)}</div>
+        ${isBest ? '<span class="w-best-tag normal">BEST</span>' : ''}
+        <div class="w-buy">Buy →</div>
+      </a>`;
+    }).join('');
+  }
+
+  if (hasST) {
+    const have = WO.filter(w => sp[w]);
+    const best = have.length ? have.reduce((a,b) => sp[a].priceEur <= sp[b].priceEur ? a : b) : null;
+    html += `<div class="w-divider st">StatTrak™</div>`;
+    html += WO.map(w => {
+      const p = sp[w];
+      const isBest = w === best;
+      if (!p) return `
+        <div class="w-row unavail">
+          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+          <div class="w-name">StatTrak™ ${WN[w]}</div>
+          <div class="w-na">—</div>
+        </div>`;
+      return `
+      <a class="w-row st-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
+        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+        <div class="w-name">StatTrak™ ${WN[w]}</div>
+        <div class="w-price">${escH(p.priceStr)}</div>
+        ${isBest ? '<span class="w-best-tag st">BEST</span>' : ''}
+        <div class="w-buy">Buy →</div>
+      </a>`;
+    }).join('');
+  }
+
+  if (hasSV) {
+    const have = WO.filter(w => sv[w]);
+    const best = have.length ? have.reduce((a,b) => sv[a].priceEur <= sv[b].priceEur ? a : b) : null;
+    html += `<div class="w-divider sv">Souvenir</div>`;
+    html += WO.map(w => {
+      const p = sv[w];
+      const isBest = w === best;
+      if (!p) return `
+        <div class="w-row unavail">
+          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+          <div class="w-name">Souvenir ${WN[w]}</div>
+          <div class="w-na">—</div>
+        </div>`;
+      return `
+      <a class="w-row sv-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
+        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
+        <div class="w-name">Souvenir ${WN[w]}</div>
+        <div class="w-price">${escH(p.priceStr)}</div>
+        ${isBest ? '<span class="w-best-tag sv">BEST</span>' : ''}
+        <div class="w-buy">Buy →</div>
+      </a>`;
+    }).join('');
+  }
+
+  return html;
+}
+
+function buildOffersForWear(skin, cat, wear) {
+  const wearMap = cat === 'st' ? (skin.stWearPrices || {})
+                : cat === 'sv' ? (skin.svWearPrices || {})
+                : (skin.wearPrices || {});
+
+  const sources = [];
+
+  // white.market — per-wear, per-variant
+  const wmEntry = wearMap[wear];
+  sources.push({
+    name: 'white.market',
+    inStock:  !!(wmEntry && wmEntry.priceEur > 0),
+    priceEur: wmEntry?.priceEur || 0,
+    priceStr: wmEntry?.priceStr || null,
+    url:      wmEntry?.url      || null,
+    count:    wmEntry ? 1 : 0,
+  });
+
+  // CSFloat — single listing; wear-matched via stored wearName or skin.wear
+  if (skin.csfloatUrl) {
+    const cfP    = (skin.prices || []).find(p => p.site === 'CSFloat');
+    const cfWear = cfP?.wearName ? (WEAR_FULL[cfP.wearName] || skin.wear) : skin.wear;
+    const ok     = cfWear === wear;
+    sources.push({
+      name: 'CSFloat',
+      inStock:  ok,
+      priceEur: ok ? (cfP?.priceNum || 0) : 0,
+      priceStr: ok ? (cfP?.price    || null) : null,
+      url:      ok ? skin.csfloatUrl : null,
+      count:    ok ? 1 : 0,
+    });
+  }
+
+  // DMarket — single listing, normal category only, wear-matched via skin.wear
+  if (cat === 'normal' && skin.dmarketUrl) {
+    const dmP = (skin.prices || []).find(p => p.site === 'DMarket');
+    const ok  = dmP && skin.wear === wear;
+    sources.push({
+      name: 'DMarket',
+      inStock:  !!ok,
+      priceEur: ok ? (dmP.priceNum || 0) : 0,
+      priceStr: ok ? (dmP.price    || null) : null,
+      url:      ok ? skin.dmarketUrl : null,
+      count:    ok ? 1 : 0,
+    });
+  }
+
+  if (!sources.length) {
+    return '<div style="padding:18px;color:var(--muted);font-size:13px">No marketplace data available.</div>';
+  }
+
+  // CHEAPEST badge: only when 2+ sources are in stock
+  const inStock      = sources.filter(s => s.inStock);
+  const cheapestName = inStock.length >= 2
+    ? inStock.reduce((a, b) => a.priceEur < b.priceEur ? a : b).name
+    : null;
+
+  return sources.map(src => {
+    const m = MP_META[src.name] || {
+      logo: src.name.slice(0,2).toUpperCase(), logoBg:'#1a1f2a',
+      logoColor:'#7b8698', stars: 4.0, reviews:'?', partner: false,
+    };
+    const stars = '★'.repeat(Math.floor(m.stars)) + (m.stars%1>=.5?'½':'') + '☆'.repeat(5-Math.ceil(m.stars));
+
+    if (!src.inStock) {
+      return `
+    <div class="offer-row oos">
+      <div class="offer-logo" style="background:${m.logoBg};color:${m.logoColor};opacity:.4">${m.logo}</div>
+      <div class="offer-info">
+        <div class="offer-name-row">
+          <span class="offer-name">${escH(src.name)}</span>
+          ${m.partner ? '<span class="partner-badge" style="opacity:.5">PARTNER</span>' : ''}
+        </div>
+        <div class="offer-meta-row">
+          <span class="offer-stars" style="opacity:.35">${stars}</span>
+          <span class="offer-trust" style="opacity:.35">${m.stars.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class="offer-right">
+        <div class="offer-oos-label">Out of Stock</div>
+      </div>
+    </div>`;
+    }
+
+    const isCheapest = src.name === cheapestName;
+    return `
+    <div class="offer-row${m.partner?' partner':''}">
+      <div class="offer-logo" style="background:${m.logoBg};color:${m.logoColor}">${m.logo}</div>
+      <div class="offer-info">
+        <div class="offer-name-row">
+          <span class="offer-name">${escH(src.name)}</span>
+          ${m.partner ? '<span class="partner-badge">PARTNER</span>' : ''}
+          ${isCheapest ? '<span class="cheapest-badge">CHEAPEST</span>' : ''}
+        </div>
+        <div class="offer-meta-row">
+          <span class="offer-stars">${stars}</span>
+          <span class="offer-trust">${m.stars.toFixed(1)}</span>
+          <span class="offer-listings">· ${src.count} offer${src.count!==1?'s':''}</span>
+        </div>
+      </div>
+      <div class="offer-right">
+        <div class="offer-from-label">from</div>
+        <div class="offer-price">${escH(src.priceStr)}</div>
+        <a class="offer-btn" href="${escA(src.url)}" target="_blank" rel="noopener">View Offer →</a>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function fmtReleaseDate(d) {
@@ -307,280 +420,291 @@ function fmtReleaseDate(d) {
   const dt = new Date(d + 'T00:00:00Z');
   if (isNaN(dt.getTime())) return null;
   const day = dt.getUTCDate();
-  const sfx = [11,12,13].includes(day) ? 'th' : day%10===1?'st':day%10===2?'nd':day%10===3?'rd':'th';
-  return `${dt.toLocaleDateString('en-US',{month:'long',timeZone:'UTC'})} ${day}${sfx}, ${dt.getUTCFullYear()}`;
+  const sfx = [11,12,13].includes(day) ? 'th'
+    : day % 10 === 1 ? 'st'
+    : day % 10 === 2 ? 'nd'
+    : day % 10 === 3 ? 'rd' : 'th';
+  const month = dt.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  return `${month} ${day}${sfx}, ${dt.getUTCFullYear()}`;
 }
 
-// ─── Comparator card ──────────────────────────────────────────────────────────
-function buildComparatorPlaceholder() {
+function buildSkinInfo(skin) {
+  const finish     = skin.finishName || skin.variant || '';
+  const rarityCode = skin.rarity || '';
+  const rarityName = skin.rarityName || RARITY_LABELS[rarityCode] || '';
+  const collection = skin.collection || '';
+  const relDate    = fmtReleaseDate(skin.releaseDate);
+
+  const rows = [
+    { icon:'tag',      label:'Category',         val: 'Skin' },
+    { icon:'target',   label:'Type',   val: CAT_LABELS[skin.category] || '—',
+      href: skin.category ? 'index.html?type=' + encodeURIComponent(skin.category) : null },
+    { icon:'gun',      label:'Weapon', val: skin.weaponName || skin.name,
+      href: (skin.weaponName || skin.name)
+        ? 'index.html?weapon=' + encodeURIComponent(skin.weaponName || skin.name) + '&type=' + encodeURIComponent(skin.category || '')
+        : null },
+    { icon:'palette',  label:'Finish',           val: finish,
+      href: finish ? 'index.html?search=' + encodeURIComponent(finish) : null },
+    { icon:'hash',     label:'Finish Catalog',   val: skin.paintIndex || '—' },
+    { icon:'shuffle',  label:'Pattern Variants', val: PATTERN_VAR_RE.test(finish) ? 'Yes' : 'No' },
+    { icon:'monitor',  label:'Model Version',    val: skin.legacyModel ? 'Legacy / CS2' : 'CS2' },
+    { icon:'star',     label:'Rarity',           val: rarityName, cls: 'rc-' + rarityCode,
+      href: rarityCode ? 'index.html?rarity=' + encodeURIComponent(rarityCode) : null },
+    { icon:'users',    label:'Team',             val: skin.team || '—' },
+    { icon:'box',      label:'Collection',       val: collection,
+      href: collection ? 'index.html?collection=' + encodeURIComponent(collection) : null },
+    { icon:'calendar', label:'Released',         val: relDate,
+      href: collection ? 'index.html?collection=' + encodeURIComponent(collection) : null },
+  ];
+
+  return `<div class="info-list">${
+    rows.filter(r => r.val && r.val !== '—').map(r => {
+      const cls   = r.cls ? ' ' + escH(r.cls) : '';
+      const inner = escH(r.val);
+      const val   = r.href
+        ? `<a class="info-value info-link${cls}" href="${escA(r.href)}">${inner}</a>`
+        : `<span class="info-value${cls}">${inner}</span>`;
+      return `
+    <div class="info-row">
+      <div class="info-row-left">
+        ${INFO_ICONS[r.icon] || ''}
+        <span class="info-label">${escH(r.label)}</span>
+      </div>
+      ${val}
+    </div>`;
+    }).join('')
+  }</div>`;
+}
+
+// ─── Extra sections ───────────────────────────────────────────────────────────
+
+function buildContainers(skin) {
+  if (!skin.collection && !(skin.skinCrates || []).length) return '';
   return `
-<div class="cmp" id="comparatorCard">
-  <div class="cmp-hd">
-    <div class="cmp-hd-l">
-      <div class="cmp-hd-title"><span class="live-dot"></span>Price spread</div>
-      <div class="cmp-hd-sub">loading markets…</div>
-    </div>
-    <div class="cmp-hd-right">
-      <div class="cmp-style-btns">
-        <button class="cmp-style-btn active" data-style="bars" onclick="setCmpStyle('bars')">Bars</button>
-        <button class="cmp-style-btn" data-style="stack" onclick="setCmpStyle('stack')">Stack</button>
-        <button class="cmp-style-btn" data-style="podium" onclick="setCmpStyle('podium')">Podium</button>
-      </div>
-      <div class="curr-toggle">
-        <button class="active" onclick="setCmpCurrency('EUR')">€ EUR</button>
-        <button onclick="setCmpCurrency('USD')">$ USD</button>
-      </div>
-    </div>
-  </div>
-  <div class="cmp-loading" id="cmpBody">
-    <div class="cmp-spin"></div>
-    <span style="font-size:12px;color:var(--muted)">Fetching prices…</span>
+<div class="extra-card" id="containersCard">
+  <div class="extra-head">Collection &amp; Containers</div>
+  <div class="containers-scroll" id="containersInner">
+    <span class="swatch-loading">Loading…</span>
   </div>
 </div>`;
 }
 
-// ─── Collection + Gallery (existing logic, new markup) ────────────────────────
-function buildCollectionPlaceholder(skin) {
-  if (!skin.collection && !(skin.skinCrates||[]).length) return '';
-  return `
-<div class="card" id="containersCard">
-  <div class="card-hd"><div class="card-hd-title">Collection &amp; Containers</div></div>
-  <div style="display:flex;gap:12px;overflow-x:auto;padding:14px 18px" id="containersInner">
-    <span style="font-size:12px;color:var(--muted)">Loading…</span>
-  </div>
-</div>`;
+async function initContainers(skin) {
+  const wrap = document.getElementById('containersInner');
+  if (!wrap) return;
+
+  // Fetch & cache crates DB
+  if (!window._cratesDB) {
+    try {
+      const r = await fetch('https://raw.githubusercontent.com/bymykel/CSGO-API/master/api/en/crates.json');
+      window._cratesDB = r.ok ? await r.json() : [];
+    } catch(_) { window._cratesDB = []; }
+  }
+
+  const db = window._cratesDB;
+  const norm = s => (s || '').toLowerCase().trim();
+
+  // Helper: find best image + Steam Market link by name
+  function resolveItem(name, kind, fallbackImg) {
+    const match = db.find(e => norm(e.name) === norm(name));
+    return {
+      kind,
+      name,
+      image: match?.image || fallbackImg || '',
+      url: 'https://steamcommunity.com/market/listings/730/' + encodeURIComponent(name),
+    };
+  }
+
+  const items = [];
+  if (skin.collection) {
+    items.push(resolveItem(skin.collection, 'Collection', skin.collectionImg));
+  }
+  for (const c of (skin.skinCrates || [])) {
+    if (c.name) items.push(resolveItem(c.name, 'Container', c.image));
+  }
+
+  if (!items.length) {
+    wrap.innerHTML = '<span class="swatch-na">No data available</span>';
+    return;
+  }
+
+  wrap.innerHTML = items.map(item => `
+  <a class="container-card" href="${escA(item.url)}" target="_blank" rel="noopener">
+    ${item.image
+      ? `<img class="container-img" src="${escA(item.image)}" alt="${escA(item.name)}" loading="lazy" onerror="this.style.opacity='.15'">`
+      : `<div class="container-img-ph"></div>`}
+    <div class="container-kind">${escH(item.kind)}</div>
+    <div class="container-name">${escH(item.name)}</div>
+  </a>`).join('');
 }
 
 function buildGallery(skin) {
   const imgs = [skin.image].filter(Boolean);
   return `
-<div class="card">
-  <div class="card-hd"><div class="card-hd-title">Gallery</div></div>
+<div class="extra-card">
+  <div class="extra-head">Gallery</div>
   <div class="gallery-grid">
-    ${Array.from({length:4},(_,i) => {
-      if (imgs[i]) return `<a class="gallery-slot" href="${escA(imgs[i])}" target="_blank" rel="noopener"><img src="${escA(imgs[i])}" alt="Gallery ${i+1}" loading="lazy"></a>`;
+    ${Array.from({ length: 4 }, (_, i) => {
+      if (imgs[i]) return `
+    <a class="gallery-slot" href="${escA(imgs[i])}" target="_blank" rel="noopener">
+      <img src="${escA(imgs[i])}" alt="Gallery ${i + 1}" loading="lazy">
+    </a>`;
       return `<div class="gallery-slot gallery-ph"><span>More images<br>coming soon</span></div>`;
     }).join('')}
   </div>
 </div>`;
 }
 
-// ─── Comparator state & rendering ────────────────────────────────────────────
-window._cmpData     = null;  // array of market entries
-window._cmpStyle    = 'bars';
-window._cmpCurrency = 'EUR';
-
-window.setCmpStyle = function(style) {
-  window._cmpStyle = style;
-  document.querySelectorAll('.cmp-style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === style));
-  if (window._cmpData) renderComparator(window._cmpData);
-};
-
-window.setCmpCurrency = function(c) {
-  window._cmpCurrency = c;
-  document.querySelectorAll('.curr-toggle button').forEach(b => b.classList.toggle('active', b.textContent.startsWith(c === 'EUR' ? '€' : '$')));
-  if (window._cmpData) renderComparator(window._cmpData);
-};
-
-function renderComparator(markets) {
-  const body = document.getElementById('cmpBody');
+async function initMarketplacePrices(skin) {
+  const body = document.getElementById('mpPricesBody');
   if (!body) return;
-  const sorted = [...markets].sort((a,b) => a.priceEur - b.priceEur);
-  if (!sorted.length) { body.innerHTML = '<div class="cmp-err">Prix non disponible</div>'; return; }
 
-  // update header sub
-  const sub = document.querySelector('#comparatorCard .cmp-hd-sub');
-  if (sub) sub.textContent = `${sorted.length} markets · updated just now`;
-
-  const c = window._cmpCurrency;
-  const p = m => c === 'USD' ? m.priceUsd : m.priceEur;
-  const prices = sorted.map(p);
-  const min = Math.min(...prices), max = Math.max(...prices);
-  const span = Math.max(max - min, 0.01);
-  const bestM = sorted[0];
-
-  if (window._cmpStyle === 'bars') {
-    const summaryHTML = `
-<div class="cmp-summary">
-  <div class="cmp-sum"><div class="cmp-sum-l">Cheapest</div><div class="cmp-sum-v green">${fmtPrice(min,c)}</div><div class="cmp-sum-s green">on ${escH(bestM.name)}</div></div>
-  <div class="cmp-sum"><div class="cmp-sum-l">Spread</div><div class="cmp-sum-v">${((max-min)/min*100).toFixed(1)}%</div><div class="cmp-sum-s">range delta</div></div>
-  <div class="cmp-sum"><div class="cmp-sum-l">You save</div><div class="cmp-sum-v">${fmtPrice(max-min,c)}</div><div class="cmp-sum-s">vs costliest</div></div>
-</div>`;
-    const barsHTML = sorted.map(m => {
-      const mp = p(m);
-      const fill = Math.max(38, 100 - ((mp-min)/span)*62);
-      const isBest = m.source === bestM.source;
-      const d = mp - min;
-      return `
-<a class="cmp-row${isBest?' best':''}" href="${escA(m.url||'#')}" target="_blank" rel="noopener">
-  <div class="cmp-row-head">
-    <div class="cmp-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
-    <div class="cmp-name-wrap">
-      <div class="cmp-name">${escH(m.name)}${isBest?'<span class="cmp-best-pill">Best</span>':''}</div>
-      <div class="cmp-rating"><span style="color:#fbbf24">${'★'.repeat(Math.floor(m.stars))}${m.stars%1>=.5?'½':''}</span><span>${m.stars.toFixed(1)}</span></div>
-    </div>
-  </div>
-  <div class="cmp-price-col">
-    <div class="cmp-price">${fmtPrice(mp,c)}</div>
-    <div class="cmp-delta">${deltaStr(d,c)}</div>
-  </div>
-  <div class="cmp-track"><div class="cmp-fill" style="width:${fill}%"></div></div>
-  <div class="cmp-meta-row">
-    <span>${((mp/min-1)*100).toFixed(1)}% vs best</span>
-    <span>buy →</span>
-  </div>
-</a>`;
-    }).join('');
-    body.outerHTML = `<div id="cmpBody">${summaryHTML}<div class="cmp-bars">${barsHTML}</div><div class="cmp-foot"><span>Save <strong>${fmtPrice(max-min,c)}</strong> on <strong>${escH(bestM.name)}</strong></span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2)">updated just now</span></div></div>`;
-
-  } else if (window._cmpStyle === 'stack') {
-    const rows = sorted.map((m,i) => {
-      const mp = p(m); const d = mp - p(sorted[0]); const isBest = i===0;
-      return `
-<a class="cmp-stack-row${isBest?' best':''}" href="${escA(m.url||'#')}" target="_blank" rel="noopener">
-  <div class="cmp-stack-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
-  <div class="cmp-stack-info">
-    <div class="cmp-stack-name-row"><span class="cmp-stack-name">${escH(m.name)}</span>${isBest?'<span class="cmp-best-pill">Best</span>':''}</div>
-    <div class="cmp-stack-meta"><span style="color:#fbbf24">${'★'.repeat(Math.floor(m.stars))}</span><span class="cmp-stack-trust">${m.stars.toFixed(1)}</span></div>
-  </div>
-  <div class="cmp-stack-right">
-    <div class="cmp-stack-price">${fmtPrice(mp,c)}</div>
-    <div class="cmp-stack-delta">${isBest?'<span style="color:var(--green)">cheapest</span>':'+'+fmtPrice(d,c)}</div>
-  </div>
-</a>`;
-    }).join('');
-    body.outerHTML = `<div id="cmpBody"><div class="cmp-stack">${rows}</div></div>`;
-
-  } else { // podium
-    const top3 = sorted.slice(0,3), rest = sorted.slice(3);
-    const podOrder = top3.length>=3 ? [top3[1],top3[0],top3[2]] : top3;
-    const podCls   = top3.length>=3 ? ['silver','gold','bronze'] : ['gold','silver','bronze'];
-    const podRank  = top3.length>=3 ? [2,1,3] : [1,2,3];
-    const bestP = p(sorted[0]);
-    const steps = podOrder.map((m,i) => {
-      const mp = p(m); const d = mp - bestP;
-      return `
-<a class="cmp-step ${podCls[i]}" href="${escA(m.url||'#')}" target="_blank" rel="noopener">
-  <div class="cmp-rank">${podRank[i]}</div>
-  <div class="cmp-step-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
-  <div class="cmp-step-name">${escH(m.name)}</div>
-  <div class="cmp-step-price">${fmtPrice(mp,c)}</div>
-  <div class="cmp-step-delta">${podCls[i]==='gold'?'<span style="color:var(--green)">cheapest</span>':'+'+fmtPrice(d,c)}</div>
-</a>`;
-    }).join('');
-    const restRows = rest.map((m,idx) => {
-      const mp = p(m); const d = mp - bestP;
-      return `<a class="cmp-rest-row" href="${escA(m.url||'#')}" target="_blank" rel="noopener"><div class="cmp-rest-rank">${idx+4}</div><div class="cmp-rest-name">${escH(m.name)}</div><div class="cmp-rest-price">${fmtPrice(mp,c)}</div><div class="cmp-rest-delta">+${d.toFixed(2)}</div></a>`;
-    }).join('');
-    body.outerHTML = `<div id="cmpBody"><div class="cmp-podium"><div class="cmp-podium-grid">${steps}</div></div>${rest.length?'<div class="cmp-rest">'+restRows+'</div>':''}</div>`;
-  }
-}
-
-async function initComparator(skin) {
   const wearFull = WN[skin.wear] || skin.wear || '';
-  const mhn = (skin.name||'') + (skin.variant ? ' | '+skin.variant : '') + (wearFull ? ' ('+wearFull+')' : '');
+  const mhn = skin.name
+    + (skin.variant ? ' | ' + skin.variant : '')
+    + (wearFull ? ' (' + wearFull + ')' : '');
+
   const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'https://csskinsv2.vercel.app'
     : window.location.origin;
   const url = API_BASE + '/api/prices/all?market_hash_name=' + encodeURIComponent(mhn);
+  console.log('[mp-prices] market_hash_name:', mhn);
+  console.log('[mp-prices] url:', url);
 
   try {
-    const r    = await fetch(url);
-    const data = await r.json();
-    if (!data.prices?.length) {
-      const body = document.getElementById('cmpBody');
-      if (body) body.outerHTML = '<div id="cmpBody" class="cmp-err">Prix non disponible pour ce skin.</div>';
+    const r = await fetch(url);
+    const raw = await r.text();
+    console.log('[mp-prices] status:', r.status);
+    console.log('[mp-prices] raw body:', raw);
+    const data = JSON.parse(raw);
+
+    if (!data.prices || !data.prices.length) {
+      body.innerHTML = '<div class="mp-empty">Prix non disponible</div>';
       return;
     }
-    const markets = data.prices.map(p => {
-      const m    = MP_SOURCE_META[p.source] || { name: p.source, abbr: p.source.slice(0,2).toUpperCase(), bg: '#1a1f2a', color: '#7b8698', stars: 4.0 };
-      const priceEur = p.currency === 'EUR' ? p.price : p.price * USD_TO_EUR;
-      const priceUsd = p.currency === 'USD' ? p.price : p.price / USD_TO_EUR;
-      return { source: p.source, name: m.name, abbr: m.abbr, bg: m.bg, color: m.color, stars: m.stars, priceEur, priceUsd, url: p.url || '#' };
-    });
-    window._cmpData = markets;
-    renderComparator(markets);
 
-    // also update buy-hero with best market price from comparator
-    const sorted = [...markets].sort((a,b) => a.priceEur - b.priceEur);
-    const best   = sorted[0];
-    if (best) updateBuyHero(best);
+    const sorted = [...data.prices].sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
+    const cheapest = sorted[0]?.source;
+
+    body.innerHTML = sorted.map(p => {
+      const m = MP_SOURCE_META[p.source] || { name: p.source, abbr: p.source.slice(0,2).toUpperCase(), bg: '#1a1f2a', color: '#7b8698' };
+      const priceStr = p.price != null
+        ? (p.currency === 'EUR' ? '€' : '$') + p.price.toFixed(2)
+        : '—';
+      const isCheapest = p.source === cheapest;
+      return `
+      <div class="mp-row${isCheapest ? ' mp-best' : ''}">
+        <div class="mp-logo" style="background:${m.bg};color:${m.color}">${m.abbr}</div>
+        <div class="mp-name">
+          ${escH(m.name)}
+          ${isCheapest ? '<span class="mp-cheapest-badge">MOINS CHER</span>' : ''}
+        </div>
+        <div class="mp-price">${escH(priceStr)}</div>
+        <a class="mp-buy-btn" href="${escA(p.url || '#')}" target="_blank" rel="noopener">Acheter →</a>
+      </div>`;
+    }).join('');
   } catch(e) {
-    console.error('[comparator]', e);
-    const body = document.getElementById('cmpBody');
-    if (body) body.outerHTML = `<div id="cmpBody" class="cmp-err">Erreur : <code>${escH(e.message)}</code></div>`;
+    console.error('[mp-prices] error:', e);
+    body.innerHTML = `<div class="mp-empty" style="text-align:left;padding:16px 20px">
+      <div style="color:#eb4b4b;font-weight:600;margin-bottom:6px">Erreur de chargement</div>
+      <div style="font-size:11px;color:var(--muted);font-family:monospace;white-space:pre-wrap">${escH(e.message || String(e))}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:6px">URL: ${escH(url)}</div>
+    </div>`;
   }
 }
 
-function updateBuyHero(best) {
-  const priceEl  = document.getElementById('buyHeroPrice');
-  const subEl    = document.getElementById('buyHeroSub');
-  const ctaEl    = document.getElementById('buyHeroCta');
-  const srcEl    = document.getElementById('buyHeroSource');
-  if (priceEl) priceEl.textContent = '€' + best.priceEur.toFixed(2);
-  if (subEl)   subEl.innerHTML = `Cheapest available · <strong>${escH(best.name)}</strong>`;
-  if (ctaEl)   { ctaEl.href = best.url; ctaEl.innerHTML = `Buy on ${escH(best.name)} <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>`; }
-  if (srcEl)   srcEl.innerHTML = `<div class="buy-source-logo" style="background:${best.bg};color:${best.color}">${best.abbr}</div><div class="buy-source-info"><span class="buy-source-name">${escH(best.name)}</span><span class="buy-source-rating">★★★★½ ${best.stars}</span></div>`;
+function initColors(skin) {
+  const el = document.getElementById('colorsSwatches');
+  if (!el) return;
+
+  function loadAndExtract(src, onCorsFail) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      let colors;
+      try {
+        colors = extractPalette(img);      // throws SecurityError on tainted canvas
+      } catch(e) {
+        if (e.name === 'SecurityError' && onCorsFail) { onCorsFail(); return; }
+        renderFallbackPalette(el, skin); return;
+      }
+      if (colors) renderSwatches(el, colors);
+      else renderFallbackPalette(el, skin);
+    };
+    img.onerror = () => {
+      if (onCorsFail) onCorsFail(); else renderFallbackPalette(el, skin);
+    };
+    img.src = src;
+  }
+
+  const proxy = 'https://images.weserv.nl/?url=' + encodeURIComponent(skin.image);
+  loadAndExtract(skin.image, () => loadAndExtract(proxy, null));
 }
 
-// ─── Main render ─────────────────────────────────────────────────────────────
-function render(skin) {
-  if (window._viewer) { window._viewer.dispose(); window._viewer = null; }
-  window._is3d = false;
-  window._skin = skin;
-  window._currentVariant = 'normal';
+function extractPalette(img) {
+  const SZ = 80;
+  const cv  = document.createElement('canvas');
+  cv.width  = SZ; cv.height = SZ;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(img, 0, 0, SZ, SZ);
+  const { data } = ctx.getImageData(0, 0, SZ, SZ); // throws SecurityError if tainted
 
-  const catLabel = CAT_LABELS[skin.category] || 'Skins';
-  document.title  = skin.name + (skin.variant ? ' | '+skin.variant : '') + ' — CSSkins';
-  document.getElementById('bcCat').textContent  = catLabel;
-  document.getElementById('bcName').textContent = skin.name + (skin.variant ? ' | '+skin.variant : '');
+  const map = {};
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 80) continue;          // transparent pixels
+    const r = data[i]     >> 3 << 3;          // quantise: steps of 8
+    const g = data[i + 1] >> 3 << 3;
+    const b = data[i + 2] >> 3 << 3;
+    if (r + g + b < 45) continue;             // near-black (shadow artefacts)
+    const key = `${r},${g},${b}`;
+    map[key] = (map[key] || 0) + 1;
+  }
 
-  document.getElementById('root').innerHTML =
-    buildHero(skin) +
-    `<div class="page">
-      <div class="left">
-        ${buildViewerCard(skin)}
-        ${buildFloatCard(skin)}
-        ${buildWearGrid(skin)}
-        ${buildCollectionPlaceholder(skin)}
-        ${buildGallery(skin)}
-      </div>
-      <div class="right">
-        ${buildBuyHero(skin)}
-        ${buildComparatorPlaceholder()}
-        ${buildInfoGrid(skin)}
-      </div>
-    </div>`;
+  const top = Object.entries(map)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([k]) => {
+      const [r, g, b] = k.split(',').map(Number);
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    });
 
-  initFloatSlider(skin);
-  initComparator(skin);
-  initContainers(skin);
+  return top.length >= 3 ? top : null;
 }
 
-// ─── Variant switch (wear grid) ───────────────────────────────────────────────
-window.setVariant = function(v) {
-  window._currentVariant = v;
-  document.querySelectorAll('.variant-tab').forEach(b => b.classList.toggle('active', b.dataset.variant === v));
-  const body = document.getElementById('wearGridBody');
-  if (body) body.innerHTML = buildWearCells(window._skin, v);
-};
+function renderFallbackPalette(el, skin) {
+  const BASE = {
+    covert:     '#eb4b4b', classified: '#d32ce6',
+    restricted: '#8847ff', milspec:    '#4b69ff',
+    industrial: '#5e98d9', consumer:   '#b0c3d9',
+  };
+  const hex = BASE[skin.rarity] || '#4b69ff';
+  const R = parseInt(hex.slice(1, 3), 16);
+  const G = parseInt(hex.slice(3, 5), 16);
+  const B = parseInt(hex.slice(5, 7), 16);
+  const shades = [1.0, 0.75, 0.52, 0.34, 0.18].map(t => {
+    const mix = v => Math.min(255, Math.round(v * t + 16 * (1 - t)));
+    return '#' + [mix(R), mix(G), mix(B)].map(v => v.toString(16).padStart(2, '0')).join('');
+  });
+  renderSwatches(el, shades);
+}
 
-// ─── Float slider ─────────────────────────────────────────────────────────────
-const FLOAT_ZONES = [
-  { wear:'FN', min:0, max:0.07 }, { wear:'MW', min:0.07, max:0.15 },
-  { wear:'FT', min:0.15, max:0.38 }, { wear:'WW', min:0.38, max:0.45 },
-  { wear:'BS', min:0.45, max:1.00 },
-];
-const ZONE_COLORS = { FN:'#00d882', MW:'#7dc84e', FT:'#ffe760', WW:'#f09832', BS:'#eb4b4b' };
-const GRAY_ZONE   = '#2a3040';
+function renderSwatches(el, colors) {
+  el.innerHTML = colors.map(hex => `
+    <div class="swatch-item">
+      <div class="swatch-dot" style="background:${hex}"></div>
+      <span class="swatch-hex">${hex.toUpperCase()}</span>
+    </div>`).join('');
+}
 
 function buildTrackGradient(minF, maxF) {
   const stops = [];
   if (minF > 0.001) stops.push(`${GRAY_ZONE} 0%`, `${GRAY_ZONE} ${(minF*100).toFixed(2)}%`);
   for (const z of FLOAT_ZONES) {
-    const s = Math.max(z.min, minF), e = Math.min(z.max, maxF);
+    const s = Math.max(z.min, minF);
+    const e = Math.min(z.max, maxF);
     if (e <= s) continue;
-    stops.push(`${ZONE_COLORS[z.wear]} ${(s*100).toFixed(2)}%`, `${ZONE_COLORS[z.wear]} ${(e*100).toFixed(2)}%`);
+    stops.push(`${ZONE_COLORS[z.wear]} ${(s*100).toFixed(2)}%`);
+    stops.push(`${ZONE_COLORS[z.wear]} ${(e*100).toFixed(2)}%`);
   }
   if (maxF < 0.999) stops.push(`${GRAY_ZONE} ${(maxF*100).toFixed(2)}%`, `${GRAY_ZONE} 100%`);
   return stops.length ? `linear-gradient(90deg, ${stops.join(', ')})` : '';
@@ -590,66 +714,63 @@ function initFloatSlider(skin) {
   const slider = document.getElementById('floatSlider');
   const track  = document.getElementById('floatTrack');
   if (!slider || !track) return;
-  const minF = skin.minFloat ?? 0.00, maxF = skin.maxFloat ?? 1.00;
+
+  const minF = skin.minFloat ?? 0.00;
+  const maxF = skin.maxFloat ?? 1.00;
+
   track.style.background = buildTrackGradient(minF, maxF);
+
   slider.addEventListener('input', () => {
     let val = parseFloat(slider.value);
     if (val < minF) { val = minF; slider.value = String(minF); }
     if (val > maxF) { val = maxF; slider.value = String(maxF); }
-    onFloatChange(val);
+    onFloatChange(skin, val);
   });
-  onFloatChange(parseFloat(slider.value));
+
+  onFloatChange(skin, parseFloat(slider.value));
 }
 
-function onFloatChange(floatVal) {
-  const wear     = floatToWear(floatVal);
-  const wearFull = WN[wear] || wear;
-  const numEl  = document.getElementById('floatNum');
-  const nameEl = document.getElementById('floatWearName');
-  const pillEl = document.getElementById('floatWearPill');
+function onFloatChange(skin, floatVal) {
+  const wear = floatToWear(floatVal);
+
+  const cat      = window._currentCategory || 'normal';
+  const priceMap = cat === 'st' ? (skin.stWearPrices || {})
+                 : cat === 'sv' ? (skin.svWearPrices || {})
+                 : (skin.wearPrices || {});
+  const entry = priceMap[wear];
+
   const dispEl = document.getElementById('floatDisplay');
   const wearEl = document.getElementById('floatWearTxt');
-  if (numEl)  numEl.textContent  = floatVal.toFixed(4);
-  if (nameEl) nameEl.textContent = wearFull;
-  if (pillEl) { pillEl.textContent = wear; pillEl.className = 'float-wear-pill w-'+wear; }
+  const rowEl  = document.getElementById('floatPriceRow');
+  const bigEl  = document.querySelector('.best-price-big');
+  const subEl  = document.querySelector('.best-sub');
+  const buyBtn = document.querySelector('.best-buy-btn');
+
   if (dispEl) dispEl.textContent = floatVal.toFixed(4);
-  if (wearEl) wearEl.textContent = wearFull;
+  if (wearEl) wearEl.textContent = WN[wear] || wear;
   if (window._viewer) window._viewer.setFloat(floatVal);
-}
 
-// ─── Collection loading ───────────────────────────────────────────────────────
-async function initContainers(skin) {
-  const wrap = document.getElementById('containersInner');
-  if (!wrap) return;
-  if (!window._cratesDB) {
-    try {
-      const r = await fetch('https://raw.githubusercontent.com/bymykel/CSGO-API/master/api/en/crates.json');
-      window._cratesDB = r.ok ? await r.json() : [];
-    } catch(_) { window._cratesDB = []; }
+  if (entry) {
+    const catLabel = cat === 'st' ? 'StatTrak™ ' : cat === 'sv' ? 'Souvenir ' : '';
+    if (rowEl) rowEl.innerHTML =
+      `<span class="w-badge ${W_BADGE_CLS[wear]}">${escH(wear)}</span>` +
+      `<span class="fpi-price">${escH(entry.priceStr)}</span>` +
+      `<span class="fpi-src">white.market · live</span>`;
+    if (bigEl)  bigEl.textContent = entry.priceStr;
+    if (subEl)  subEl.innerHTML   = `${escH(catLabel)}${escH(WN[wear])} · white.market`;
+    if (buyBtn) { buyBtn.href = entry.url; buyBtn.textContent = 'Buy on white.market →'; }
+  } else {
+    if (rowEl) rowEl.innerHTML =
+      `<span class="w-badge ${W_BADGE_CLS[wear]}">${escH(wear)}</span>` +
+      `<span class="fpi-unavail">Indisponible pour ce float</span>`;
   }
-  const db = window._cratesDB;
-  const norm = s => (s||'').toLowerCase().trim();
-  function resolveItem(name, kind, fallbackImg) {
-    const match = db.find(e => norm(e.name) === norm(name));
-    return { kind, name, image: match?.image || fallbackImg || '', url: 'https://steamcommunity.com/market/listings/730/'+encodeURIComponent(name) };
-  }
-  const items = [];
-  if (skin.collection) items.push(resolveItem(skin.collection, 'Collection', skin.collectionImg));
-  for (const c of (skin.skinCrates||[])) if (c.name) items.push(resolveItem(c.name, 'Container', c.image));
-  if (!items.length) { wrap.innerHTML = '<span style="font-size:12px;color:var(--muted2)">No data available</span>'; return; }
-  wrap.innerHTML = items.map(item => `
-<a style="flex-shrink:0;width:130px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;color:inherit;transition:border-color .12s" href="${escA(item.url)}" target="_blank" rel="noopener">
-  ${item.image ? `<img style="width:88px;height:66px;object-fit:contain;opacity:.9" src="${escA(item.image)}" alt="${escA(item.name)}" loading="lazy" onerror="this.style.opacity='.15'">` : `<div style="width:88px;height:66px;background:var(--surface3);border-radius:5px;border:1px dashed var(--border2)"></div>`}
-  <div style="font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2)">${escH(item.kind)}</div>
-  <div style="font-size:11px;font-weight:600;color:var(--muted);line-height:1.3">${escH(item.name)}</div>
-</a>`).join('');
-}
 
-function showNotFound() {
-  document.getElementById('root').innerHTML = `
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;padding:40px">
-  <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900">Skin not found</h2>
-  <p style="color:var(--muted)">This skin couldn't be loaded.</p>
-  <a style="color:var(--accent);font-size:13px;font-weight:600" href="index.html">← Back to all skins</a>
-</div>`;
+  // Sync Active Offers panel with current wear + variant category
+  const offersBody = document.getElementById('offersBody');
+  const offersCnt  = document.getElementById('offersCnt');
+  if (offersBody) {
+    offersBody.innerHTML = buildOffersForWear(skin, cat, wear);
+    const n = offersBody.querySelectorAll('.offer-row:not(.oos)').length;
+    if (offersCnt) offersCnt.textContent = n + ' marketplace' + (n !== 1 ? 's' : '');
+  }
 }

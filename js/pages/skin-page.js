@@ -115,14 +115,15 @@ function inspectSkinSlug(skin) {
 
 // ─── View tab switch (Wear / 3D View) ────────────────────────────────────────
 function setViewTab(tab) {
-  document.querySelectorAll('.viewer-tab').forEach(b =>
+  document.querySelectorAll('.view-tab').forEach(b =>
     b.classList.toggle('active', b.dataset.tab === tab)
   );
 
   const img     = document.getElementById('skinImg');
   const v3d     = document.getElementById('viewer3d');
   const frame   = document.getElementById('inspectFrame');
-  const foot    = document.querySelector('.viewer-foot');
+  const btns    = document.getElementById('imgBtns');
+  const bar     = document.querySelector('.img-bar');
 
   if (tab === '3d') {
     // Reset Three.js viewer if active
@@ -133,7 +134,8 @@ function setViewTab(tab) {
       if (btn3d) { btn3d.textContent = '⬡ 3D'; btn3d.classList.remove('active'); }
     }
     if (img)  img.style.display  = 'none';
-    if (foot) foot.style.display = 'none';
+    if (btns) btns.style.display = 'none';
+    if (bar)  bar.style.display  = 'none';
     if (frame) {
       frame.style.display = 'flex';
       if (!frame.dataset.loaded && window._skin) {
@@ -171,7 +173,8 @@ function setViewTab(tab) {
   } else {
     // Wear tab
     if (img)   img.style.display   = '';
-    if (foot)  foot.style.display  = '';
+    if (btns)  btns.style.display  = '';
+    if (bar)   bar.style.display   = '';
     if (frame) frame.style.display = 'none';
   }
 }
@@ -219,14 +222,14 @@ function toggle3DView() {
 
 function initViewer3DOnce() {
   if (window._viewer) {
-    const stage = document.querySelector('.viewer-stage');
+    const stage = document.querySelector('.img-stage');
     if (stage) window._viewer.resize(stage.offsetWidth, stage.offsetHeight);
     return;
   }
   if (!window.CS2SkinViewer) { setTimeout(initViewer3DOnce, 80); return; }
   const canvas = document.getElementById('viewer3dCanvas');
   if (!canvas) return;
-  const stage = canvas.closest('.viewer-stage');
+  const stage = canvas.closest('.img-stage');
   const w = stage ? stage.offsetWidth  : 600;
   const h = stage ? stage.offsetHeight : 310;
   window._viewer = new window.CS2SkinViewer(canvas, w, h);
