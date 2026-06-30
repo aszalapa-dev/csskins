@@ -119,23 +119,17 @@ function setViewTab(tab) {
     b.classList.toggle('active', b.dataset.tab === tab)
   );
 
-  const img     = document.getElementById('skinImg');
-  const v3d     = document.getElementById('viewer3d');
-  const frame   = document.getElementById('inspectFrame');
-  const btns    = document.getElementById('imgBtns');
-  const bar     = document.querySelector('.img-bar');
+  const img   = document.getElementById('skinImg');
+  const frame = document.getElementById('inspectFrame');
+  const btns  = document.getElementById('imgBtns');
+  const hint  = document.querySelector('.viewer-hint');
+  const reticle = document.querySelector('.viewer-reticle');
 
   if (tab === '3d') {
-    // Reset Three.js viewer if active
-    if (window._is3d) {
-      window._is3d = false;
-      if (v3d)  v3d.style.display  = 'none';
-      const btn3d = document.getElementById('btn3d');
-      if (btn3d) { btn3d.textContent = '⬡ 3D'; btn3d.classList.remove('active'); }
-    }
-    if (img)  img.style.display  = 'none';
-    if (btns) btns.style.display = 'none';
-    if (bar)  bar.style.display  = 'none';
+    if (img)     img.style.display     = 'none';
+    if (btns)    btns.style.display    = 'none';
+    if (hint)    hint.style.display    = 'none';
+    if (reticle) reticle.style.display = 'none';
     if (frame) {
       frame.style.display = 'flex';
       if (!frame.dataset.loaded && window._skin) {
@@ -152,30 +146,22 @@ function setViewTab(tab) {
             <span>3D view not available</span>
             <a href="${url}" target="_blank" rel="noopener">Open inspect.skin ↗</a>
           </div>`;
-        // Hide the fallback if the iframe loads successfully
         const iframe = frame.querySelector('iframe');
         if (iframe) {
           iframe.addEventListener('load', () => {
             const fb = frame.querySelector('.inspect-fallback');
-            try {
-              // Cross-origin check: if accessible, loaded fine
-              void iframe.contentWindow.location.href;
-              if (fb) fb.style.display = 'none';
-            } catch(_) {
-              // Blocked by X-Frame-Options or CORS — show fallback
-              if (fb) fb.style.display = 'flex';
-              iframe.style.display = 'none';
-            }
+            try { void iframe.contentWindow.location.href; if (fb) fb.style.display = 'none'; }
+            catch(_) { if (fb) fb.style.display = 'flex'; iframe.style.display = 'none'; }
           });
         }
       }
     }
   } else {
-    // Wear tab
-    if (img)   img.style.display   = '';
-    if (btns)  btns.style.display  = '';
-    if (bar)   bar.style.display   = '';
-    if (frame) frame.style.display = 'none';
+    if (img)     img.style.display     = '';
+    if (btns)    btns.style.display    = '';
+    if (hint)    hint.style.display    = '';
+    if (reticle) reticle.style.display = '';
+    if (frame)   frame.style.display   = 'none';
   }
 }
 

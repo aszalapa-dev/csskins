@@ -150,7 +150,7 @@ function setViewOrbs(color) {
 
 function goHome() {
   VIEW = 'home'; VIEW_CAT_ID = null; VIEW_WEAPON = null; VIEW_SEARCH = ''; VIEW_FILTER_FN = null;
-  document.title = 'CSSkins — CS2 Skin Price Comparator';
+  document.title = 'CSSKINS // Arsenal Price Index — Find the cheapest CS2 skin';
   setViewOrbs(null);
   showView('view-home');
   refreshCatCards();
@@ -347,7 +347,7 @@ window.renderSkins = function(slice) {
   const n  = allSkins().length;
   const sc = document.getElementById('statusSkinCount');
   if (sc && n) sc.textContent = n.toLocaleString();
-  const hs = document.getElementById('heroStatSkins');
+  const hs = document.getElementById('statSkins');
   if (hs && n) hs.textContent = n.toLocaleString();
 
   if (window._pendingFilter && n > 0) {

@@ -132,6 +132,8 @@ async function fetchWhiteMarketPrices() {
       }
     }
 
+    const NO_SOUVENIR = new Set(['knife', 'glove']);
+
     let matched = 0;
     for (const skin of state.allSkins) {
       const mapKey = (skin.variant !== 'Vanilla'
@@ -142,7 +144,7 @@ async function fetchWhiteMarketPrices() {
       if (!entry) continue;
       skin.wearPrices   = entry.wears;
       skin.stWearPrices = entry.stWears;
-      skin.svWearPrices = entry.svWears;
+      skin.svWearPrices = NO_SOUVENIR.has(skin.category) ? {} : entry.svWears;
       const allVals = [...Object.values(entry.wears), ...Object.values(entry.stWears), ...Object.values(entry.svWears)];
       if (!allVals.length) continue;
       const cheapest = allVals.reduce((a, b) => a.priceEur < b.priceEur ? a : b);

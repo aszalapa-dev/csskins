@@ -57,33 +57,57 @@ function skinCard(skin) {
   </div>`;
 }
 
+// Category card CSS class mapping
+const CAT_CLASS = {
+  rifles:  'rifles',
+  sniper:  'snipers',
+  pistol:  'pistols',
+  smg:     'smgs',
+  knife:   'knives',
+  gloves:  'gloves',
+};
+
 function renderCatGrid() {
   const grid = document.getElementById('catGrid');
   if (!grid) return;
   grid.innerHTML = CAT_DEFS.map(cat => {
-    const catSkins    = skinsForCat(cat.id);
+    const catSkins = skinsForCat(cat.id);
+    const wcClass  = CAT_CLASS[cat.id] || '';
+
+    // Collect up to 3 weapon images
     const previewImgs = [];
     for (const w of cat.weapons) {
       if (previewImgs.length >= 3) break;
       const img = weaponImg(w);
-      if (img) previewImgs.push(`<img src="${img}" alt="${w}" loading="lazy">`);
+      if (img) previewImgs.push(img);
     }
-    const imgHtml = previewImgs.length ? previewImgs.join('') : `<div class="ph">${cat.emoji}</div>`;
+
+    const imgsHtml = previewImgs.length
+      ? previewImgs.map(src => `<img src="${src}" alt="" loading="lazy">`).join('')
+      : `<div class="ph-icon">${cat.emoji || '◈'}</div>`;
+
+    const skinCount = catSkins.length;
+    const statsHtml = `
+      <div class="wcard-stats">
+        <strong>${cat.weapons.length}</strong> <span style="color:var(--muted2)">weapons</span>
+        ${skinCount ? `<span class="sep">·</span><strong>${skinCount.toLocaleString()}</strong> <span style="color:var(--muted2)">skins</span>` : ''}
+      </div>`;
+
     return `
-    <div class="cat-card" style="--cat:${cat.accent}" onclick="goCategory('${cat.id}')">
-      <div class="cat-card-imgs" style="background:radial-gradient(ellipse at 50% 80%,${cat.accent}14 0%,transparent 70%)">${imgHtml}</div>
-      <div class="cat-card-stripe" style="background:linear-gradient(90deg,${cat.accent} 0%,transparent 80%)"></div>
-      <div class="cat-card-body">
-        <div class="cat-card-label" style="color:${cat.accent}">${cat.label}</div>
-        <div class="cat-card-desc">${cat.desc}</div>
-        <div class="cat-card-meta">
-          <span class="cat-meta-pill">${cat.weapons.length} weapons</span>
-          ${catSkins.length ? `<span class="cat-meta-pill">${catSkins.length.toLocaleString()} skins</span>` : ''}
-        </div>
-        <div class="cat-card-cta">Browse all <span class="cat-cta-arrow">→</span></div>
-      </div>
+    <div class="wcard ${wcClass}" onclick="goCategory('${cat.id}')">
+      <span class="br tr"></span><span class="br br2"></span>
+      <div class="wcard-imgs">${imgsHtml}</div>
+      <div class="wcard-title">${cat.label}</div>
+      <div class="wcard-sub">${cat.desc}</div>
+      ${statsHtml}
+      <div class="wcard-cta">Browse all</div>
     </div>`;
   }).join('');
+
+  // Update browse meta
+  const allSkinCount = (window.API && window.API.state.allSkins.length) || 0;
+  const meta = document.getElementById('browseMeta');
+  if (meta) meta.textContent = `${CAT_DEFS.length} CATEGORIES · ${allSkinCount.toLocaleString()} SKINS`;
 }
 
 function refreshCatCards() {
@@ -145,13 +169,13 @@ function renderMyPagination(total) {
   const totalPages = Math.ceil(total / PER_PAGE);
   if (totalPages <= 1) { el.innerHTML = ''; return; }
   const p  = SKIN_PAGE;
-  let html = pBtn('Précédent', p - 1, p === 1, 'nav');
+  let html = pBtn('← Prev', p - 1, p === 1, 'nav');
   for (const pg of pageRange(p, totalPages)) {
     html += pg === '…'
       ? `<button class="page-btn page-btn-ellipsis" disabled>…</button>`
       : pBtn(pg, pg, false);
   }
-  html += pBtn('Suivant', p + 1, p === totalPages, 'nav');
+  html += pBtn('Next →', p + 1, p === totalPages, 'nav');
   el.innerHTML = html;
 }
 
@@ -164,29 +188,58 @@ function pBtn(label, target, disabled, variant) {
 }
 
 function renderTrending() {
-  const wrap = document.getElementById('trendingWrap');
-  const row  = document.getElementById('trendingRow');
-  if (!wrap || !row) return;
+  const rail = document.getElementById('trendingRail');
+  if (!rail) return;
   const skins = allSkins();
   if (!skins.length) return;
 
+  // Pick top skins by price with images
   const picks = [...skins]
     .filter(s => s.image && s.priceNum > 0)
     .sort((a, b) => b.priceNum - a.priceNum)
-    .slice(0, 6);
+    .slice(0, 8);
   if (!picks.length) return;
 
-  row.innerHTML = picks.map(s => {
-    const label = s.variant && s.variant !== 'Vanilla' ? `${s.name} | ${s.variant}` : s.name;
-    const price = (s.prices || [])
+  const RARITY_COLOR = {
+    covert:     'var(--covert)',
+    classified: 'var(--classified)',
+    restricted: 'var(--restricted)',
+    milspec:    'var(--milspec)',
+  };
+
+  rail.innerHTML = picks.map(s => {
+    const hasVariant = s.variant && s.variant !== 'Vanilla';
+    const label  = hasVariant ? `${s.name} | ${s.variant}` : s.name;
+    const color  = RARITY_COLOR[s.rarity] || 'var(--accent)';
+    const bestP  = (s.prices || [])
       .map(p => ({ ...p, n: p.priceNum || parseFloat(String(p.price||'').replace(/[^\d.]/g,''))||0 }))
       .filter(p => p.n > 0).sort((a,b) => a.n - b.n)[0];
-    return `<div class="trend-pill" onclick="openSkin('${s.id}')">
-      <img src="${s.image}" alt="${escHtml(label)}" loading="lazy" onerror="this.style.display='none'">
-      <span class="trend-pill-name">${escHtml(label)}</span>
-      ${price ? `<span class="trend-pill-price">${escHtml(price.price)}</span>` : ''}
-    </div>`;
+    const market = bestP ? (bestP.market || bestP.source || 'Market') : '';
+
+    return `
+    <article class="drop-card" style="--card-color:${color};--card-glow:color-mix(in srgb, ${color} 25%, transparent)" onclick="openSkin('${s.id}')">
+      <div class="drop-card-shine"></div>
+      <div class="drop-card-img">
+        <img src="${s.image}" alt="${escHtml(label)}" loading="lazy" onerror="this.src='';this.parentNode.innerHTML='<div class=\\'ph\\'><span class=\\'ic\\'>◈</span>${escHtml(s.name)}</div>'">
+      </div>
+      <div class="drop-card-stripe"></div>
+      <div class="drop-card-body">
+        <div class="drop-card-meta">
+          <span class="rar">${(s.rarity || 'skin').toUpperCase()}</span>
+        </div>
+        <div class="drop-card-name">${escHtml(s.name)} <span class="v">${hasVariant ? escHtml(s.variant) : ''}</span></div>
+        <div class="drop-card-foot">
+          <div>
+            <div class="drop-card-price">${bestP ? fmtPrice(bestP.n) : '—'}</div>
+            <div class="drop-card-mkt">${escHtml(market)}</div>
+          </div>
+          <div class="drop-card-delta up">↗</div>
+        </div>
+      </div>
+    </article>`;
   }).join('');
 
-  wrap.style.display = '';
+  // Update meta
+  const meta = document.getElementById('trendingMeta');
+  if (meta) meta.textContent = `UPDATED · ${picks.length} ITEMS`;
 }

@@ -47,20 +47,22 @@ function render(skin) {
   const minFloat = skin.minFloat ?? 0.00;
   const maxFloat = skin.maxFloat ?? 1.00;
 
-  const hasST = skin.stattrak === true || WO.some(w => (skin.stWearPrices||{})[w]);
-  const hasSV = skin.souvenir === true || WO.some(w => (skin.svWearPrices||{})[w]);
+  const hasST = WO.some(w => (skin.stWearPrices||{})[w]);
+  const canSouvenir = skin.category !== 'knife' && skin.category !== 'glove';
+  const hasSV = canSouvenir && WO.some(w => (skin.svWearPrices||{})[w]);
 
   document.title = skin.name + (skin.variant ? ' | ' + skin.variant : '') + ' — CSSkins';
   document.getElementById('bcCat').textContent  = catLabel;
   document.getElementById('bcName').textContent = skin.name + (skin.variant ? ' | ' + skin.variant : '');
 
-  const wp      = skin.wearPrices || {};
-  const wpVals  = Object.values(wp).filter(e => e && e.priceEur > 0);
+  const wp       = skin.wearPrices || {};
+  const wpVals   = Object.values(wp).filter(e => e && e.priceEur > 0);
   const bestEntry = wpVals.length
     ? wpVals.reduce((a,b) => a.priceEur<=b.priceEur ? a : b)
     : skin.prices?.[0] || null;
   const bestStr  = bestEntry?.priceStr || bestEntry?.price || '—';
   const bestSite = bestEntry?.url?.includes('white.market') ? 'white.market' : (skin.prices?.[0]?.site || 'Market');
+  const bestUrl  = bestEntry?.url || '#';
 
   const catSwitchHtml = (hasST || hasSV) ? `
   <div class="cat-switch" id="catSwitch">
@@ -69,146 +71,183 @@ function render(skin) {
     ${hasSV ? '<button class="cat-btn sv" data-cat="sv" onclick="setCategory(\'sv\')">Souvenir</button>' : ''}
   </div>` : '';
 
-  document.getElementById('root').innerHTML = `
-<div class="skin-header">
-  <div class="skin-header-inner">
-    <div class="skin-cat-label">${escH(catLabel)}</div>
-    <h1 class="skin-h1">${escH(skin.name)}${skin.variant ? ' | <span class="variant">' + escH(skin.variant) + '</span>' : ''}</h1>
-    <div class="skin-meta">
-      <span class="badge-rarity r-${skin.rarity}">${rarLabel}</span>
-      <span class="chip">${escH(wearFull)}</span>
-      ${skin.collection ? '<span class="chip">' + escH(skin.collection) + '</span>' : ''}
-    </div>
-  </div>
-</div>
+  const sectionLabelTxt = [rarLabel, catLabel, skin.collection].filter(Boolean).join(' · ');
 
-<div class="page">
+  document.getElementById('root').innerHTML = `
+
+<section class="title-band reveal">
+  <div class="section-label">// ${escH(sectionLabelTxt)}</div>
+  <h1 class="skin-h1">
+    <span>${escH(skin.name)}</span>
+    ${skin.variant ? `<span class="pipe">|</span><span class="variant">${escH(skin.variant)}</span>` : ''}
+  </h1>
+  <div class="badges">
+    <span class="badge ${escH(skin.rarity||'')}">● ${escH(rarLabel)}</span>
+    ${wearFull ? `<span class="badge">${escH(wearFull)}</span>` : ''}
+    ${skin.collection ? `<span class="badge">${escH(skin.collection)}</span>` : ''}
+  </div>
+</section>
+
+<section class="content-grid">
   <div class="left">
-    <div class="img-card">
+
+    <!-- VIEWER CARD -->
+    <div class="card viewer-card reveal">
+      <div class="brackets"><span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br br"></span></div>
       <div class="view-tabs" id="viewTabs">
         <button class="view-tab active" data-tab="wear" onclick="setViewTab('wear')">Wear</button>
         <button class="view-tab" data-tab="3d" onclick="setViewTab('3d')">3D View</button>
       </div>
-      <div class="img-stage">
-        <img id="skinImg" src="${escA(skin.image)}"
+      <div id="viewer-stage">
+        <div class="viewer-hud-tl">// IMAGE_VIEW</div>
+        <div class="viewer-hud-tr"><span class="dot green"></span> Live</div>
+        <img id="skinImg"
+             src="${escA(skin.image)}"
              alt="${escA((skin.name||'') + (skin.variant ? ' | '+skin.variant : ''))}"
              onerror="this.style.opacity='.08'"
              onclick="toggleZoom()" />
-        <div id="viewer3d" class="viewer3d">
-          <div class="vd-drop" id="viewerDrop">
-            <div class="vd-icon">⬡</div>
-            <div class="vd-title">CS2 3D Viewer</div>
-            <div class="vd-hint">Drop a <strong>.glb</strong> weapon model here</div>
-            <div class="vd-sub">Also drop textures: albedo · wear_mask</div>
-          </div>
-          <canvas id="viewer3dCanvas" style="display:none"></canvas>
-        </div>
         <div id="inspectFrame" class="inspect-frame"></div>
+        <div class="viewer-overlay-grid"></div>
+        <svg class="viewer-reticle" width="44" height="44" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="11" stroke="#ff2965" stroke-width="0.8"/>
+          <line x1="22" y1="0" x2="22" y2="6" stroke="#ff2965" stroke-width="0.8"/>
+          <line x1="22" y1="38" x2="22" y2="44" stroke="#ff2965" stroke-width="0.8"/>
+          <line x1="0" y1="22" x2="6" y2="22" stroke="#ff2965" stroke-width="0.8"/>
+          <line x1="38" y1="22" x2="44" y2="22" stroke="#ff2965" stroke-width="0.8"/>
+        </svg>
         <div class="img-btns" id="imgBtns">
           <button class="img-btn" onclick="toggleMirror()">↺ Flip</button>
-          <button class="img-btn" id="btn3d" onclick="toggle3DView()">⬡ 3D</button>
-          <button class="img-btn" onclick="copyURL()">🔗 Share</button>
+          <button class="img-btn" onclick="copyURL()">⊡ Share</button>
         </div>
+        <div class="viewer-hint">Click to zoom</div>
       </div>
-      <div class="viewer-controls" id="viewerControls" style="display:none">
-        <div class="vc-left">
-          <span class="vc-label">Pattern <span id="seedVal">1</span></span>
-          <input type="range" id="seedSlider" class="vc-range" min="1" max="1000" step="1" value="1">
-        </div>
-        <div class="vc-finish">
-          <button class="vf-btn active" data-finish="0" onclick="setViewerFinish(0)">Custom Paint</button>
-          <button class="vf-btn" data-finish="1" onclick="setViewerFinish(1)">Patina</button>
-          <button class="vf-btn" data-finish="2" onclick="setViewerFinish(2)">Gunsmith</button>
-        </div>
-      </div>
-      <div class="img-bar">
-        <div class="float-label">Float: <strong>${escH(floatStr)}</strong> · ${escH(wearFull)}</div>
-        <div class="float-pill">white.market · Live</div>
+      <div class="viewer-bar">
+        <div class="left-info">Float: <strong id="floatDisplay">${escH(floatStr)}</strong> · <span id="floatWearTxt">${escH(wearFull)}</span></div>
+        <div class="right-src"><span class="dot green"></span>white.market // live</div>
       </div>
     </div>
 
-    <div class="float-section">
-      <div class="float-sec-title">Float Value</div>
+    <!-- FLOAT CARD -->
+    <div class="card float-card reveal">
+      <div class="float-card-top">
+        <div class="section-label" style="margin-bottom:0">// FLOAT_VALUE</div>
+        <span class="float-card-minmax">Min ${minFloat.toFixed(2)} · Max ${maxFloat.toFixed(2)}</span>
+      </div>
       <div class="float-row">
-        <div class="float-num" id="floatDisplay">${escH(floatStr)}</div>
-        <div class="float-wear-txt" id="floatWearTxt">${escH(wearFull)}</div>
+        <div class="float-num" id="floatNum">${escH(floatStr)}</div>
+        <div class="float-wear" id="floatWear">${escH(wearFull)}</div>
       </div>
       <div class="float-track-wrap">
-        <div class="float-track" id="floatTrack"></div>
-        <input type="range" id="floatSlider" class="float-range"
+        <div class="float-grad"></div>
+        <span class="float-zone-marker" style="left:7%"></span>
+        <span class="float-zone-marker" style="left:15%"></span>
+        <span class="float-zone-marker" style="left:38%"></span>
+        <span class="float-zone-marker" style="left:45%"></span>
+        <input type="range" class="float-slider" id="floatSlider"
                min="0" max="1" step="0.0001" value="${floatNum}" />
       </div>
-      <div class="float-ticks">
-        <span>FN</span><span>MW</span><span>FT</span><span>WW</span><span>BS</span>
-      </div>
+      <div class="float-ticks"><span>FN</span><span>MW</span><span>FT</span><span>WW</span><span>BS</span></div>
       <div class="float-price-row" id="floatPriceRow"></div>
     </div>
 
-    <div class="prices-card">
-      <div class="prices-head">
-        <div class="prices-head-title">Prices by wear</div>
-        <div class="prices-head-src">
-          <div class="live-dot"></div>
-          white.market · Live
-        </div>
+    <!-- PRICES BY WEAR -->
+    <div class="card prices-card reveal">
+      <div class="card-head">
+        <span class="label">// Prices by Wear</span>
+        <span class="meta"><span class="dot green"></span>white.market · live</span>
       </div>
-      ${buildWearRows(skin)}
+      <div id="wearRowsBody">${buildWearRows(skin)}</div>
     </div>
+
   </div>
 
-  <div class="right">
+  <aside class="right">
     ${catSwitchHtml}
-    <div class="best-card">
-      <div class="best-eyebrow"><div class="live-dot"></div> Best price right now</div>
-      <div class="best-price-big">${escH(bestStr)}</div>
-      <div class="best-sub">Cheapest available · <strong>${escH(bestSite)}</strong></div>
-      <a class="best-buy-btn" href="${bestEntry?.url ? escA(bestEntry.url) : '#'}" target="_blank" rel="noopener">
-        Buy on ${escH(bestSite)} →
-      </a>
+
+    <!-- BEST PRICE -->
+    <div class="best-card reveal">
+      <div class="brackets green"><span class="br tl"></span><span class="br tr"></span><span class="br bl"></span><span class="br br"></span></div>
+      <div class="best-eyebrow"><span class="dot green"></span>● Best_Price_Right_Now</div>
+      <div class="best-price-big" id="bestPriceBig">${escH(bestStr)}</div>
+      <div class="best-sub" id="bestSub">Cheapest available · <strong>${escH(bestSite)}</strong></div>
+      <a class="best-buy-btn" id="bestBuyBtn" href="${escA(bestUrl)}" target="_blank" rel="noopener">Buy on ${escH(bestSite)} →</a>
     </div>
 
-    <div class="offers-card">
-      <div class="offers-head">
-        <div class="offers-title">Active Offers</div>
-        <div class="offers-cnt" id="offersCnt"></div>
+    <!-- ACTIVE OFFERS -->
+    <div class="card offers-card reveal">
+      <div class="card-head">
+        <span class="label">// Active_Offers</span>
+        <span class="meta" id="offersCnt"></span>
       </div>
       <div id="offersBody">${buildOffersForWear(skin, 'normal', floatToWear(floatNum))}</div>
     </div>
 
-    <div class="info-card">
-      <div class="info-head">
-        <div class="info-head-title">Skin Info</div>
-      </div>
+    <!-- SKIN INFO -->
+    <div class="card reveal">
+      <div class="card-head"><span class="label">// Skin_Data</span></div>
       ${buildSkinInfo(skin)}
     </div>
-  </div>
-</div>
 
+    <!-- SPARKLINE (simulated) -->
+    <div class="card spark-card reveal">
+      <div class="spark-head">
+        <span class="label">// Price_History · 30D</span>
+        <span class="delta down" id="sparkDelta">—</span>
+      </div>
+      <svg class="spark-svg" id="sparkSvg" viewBox="0 0 320 80" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00ff88" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path id="sparkFillPath" d="" fill="url(#spark-fill)" opacity="0"></path>
+        <path id="sparkLinePath" class="spark-path" d="" fill="none" stroke="#00ff88" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(0,255,136,0.55))"></path>
+        <circle id="sparkDot" class="spark-dot" cx="0" cy="0" r="3" fill="#00ff88" style="filter:drop-shadow(0 0 8px rgba(0,255,136,0.55))"></circle>
+      </svg>
+    </div>
+
+  </aside>
+</section>
+
+<!-- SIMILAR SKINS -->
+<section class="similar-section reveal" id="similarSection">
+  <div class="similar-head">
+    <div>
+      <div class="section-label">// Similar_Drops</div>
+      <h3 class="similar-title">You might also like</h3>
+    </div>
+    <a href="index.html${skin.rarity ? '?rarity=' + encodeURIComponent(skin.rarity) : ''}" class="see-all" id="seeAllLink">View all ${escH(rarLabel)} →</a>
+  </div>
+  <div class="similar-row" id="similarRow"></div>
+</section>
+
+<!-- EXTRA SECTIONS -->
 <div class="extra-sections">
   <div class="extra-card" id="mpPricesCard">
     <div class="extra-head">Prix par marketplace</div>
-    <div id="mpPricesBody" class="mp-loader-wrap">
-      <div class="mp-spin"></div>
-    </div>
+    <div id="mpPricesBody" class="mp-loader-wrap"><div class="mp-spin"></div></div>
   </div>
   <div class="extra-card" id="colorsCard">
     <div class="extra-head">Colors</div>
-    <div class="colors-swatches" id="colorsSwatches">
-      <span class="swatch-loading">Extracting colors…</span>
-    </div>
+    <div class="colors-swatches" id="colorsSwatches"><span class="swatch-loading">Extracting colors…</span></div>
   </div>
   ${buildContainers(skin)}
   ${buildGallery(skin)}
 </div>`;
 
-  const n  = document.querySelectorAll('.offer-row:not(.oos)').length;
-  const el = document.getElementById('offersCnt');
-  if (el) el.textContent = n + ' marketplace' + (n !== 1 ? 's' : '');
+  // Offer count
+  const offN = document.querySelectorAll('#offersBody .offer-row:not(.oos)').length;
+  const offCnt = document.getElementById('offersCnt');
+  if (offCnt) offCnt.textContent = offN + ' marketplace' + (offN !== 1 ? 's' : '');
 
   initFloatSlider(skin);
   initColors(skin);
   initContainers(skin);
   initMarketplacePrices(skin);
+  initSparkline(skin);
+  initSimilar(skin);
+  initReveal();
 }
 
 function buildWearRows(skin) {
@@ -222,85 +261,51 @@ function buildWearRows(skin) {
 
   if (!hasNormal && !hasST && !hasSV) {
     return (skin.prices || []).map(p => `
-      <a class="w-row best" href="${escA(p.url)}" target="_blank" rel="noopener">
-        <div class="w-badge w-ft">—</div>
-        <div class="w-name">${escH(p.site||'Market')}</div>
-        <div class="w-price">${escH(p.price||'—')}</div>
-        <div class="w-buy">Buy →</div>
+      <a class="wear-row best" href="${escA(p.url)}" target="_blank" rel="noopener">
+        <span class="wear-badge w-ft">—</span>
+        <span class="wear-name">${escH(p.site||'Market')}</span>
+        <span class="wear-price">${escH(p.price||'—')}</span>
+        <span class="wear-buy-link">Buy →</span>
       </a>`).join('');
   }
+
+  const wearRow = (w, p, prefix, isBest, badgeClass) => {
+    const cls = `wear-row${prefix ? ' ' + prefix + '-row' : ''}${isBest ? ' best' : ''}`;
+    const name = prefix === 'st' ? 'StatTrak™ ' + WN[w] : prefix === 'sv' ? 'Souvenir ' + WN[w] : WN[w];
+    if (!p) return `
+      <div class="wear-row unavail">
+        <span class="wear-badge ${W_BADGE_CLS[w]}">${w}</span>
+        <span class="wear-name">${escH(name)}</span>
+        <span class="wear-na">—</span>
+      </div>`;
+    return `
+    <a class="${cls}" href="${escA(p.url)}" target="_blank" rel="noopener">
+      <span class="wear-badge ${W_BADGE_CLS[w]}">${w}</span>
+      <span class="wear-name">${escH(name)}</span>
+      <span class="wear-price">${escH(p.priceStr)}</span>
+      ${isBest ? `<span class="wear-best-tag${prefix ? ' ' + prefix : ''}">BEST</span>` : ''}
+      <span class="wear-buy-link">Buy →</span>
+    </a>`;
+  };
 
   let html = '';
 
   if (hasNormal) {
     const have = WO.filter(w => wp[w]);
     const best = have.reduce((a,b) => wp[a].priceEur <= wp[b].priceEur ? a : b);
-    html += WO.map(w => {
-      const p = wp[w];
-      const isBest = w === best;
-      if (!p) return `
-        <div class="w-row unavail">
-          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-          <div class="w-name">${WN[w]}</div>
-          <div class="w-na">—</div>
-        </div>`;
-      return `
-      <a class="w-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
-        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-        <div class="w-name">${WN[w]}</div>
-        <div class="w-price">${escH(p.priceStr)}</div>
-        ${isBest ? '<span class="w-best-tag normal">BEST</span>' : ''}
-        <div class="w-buy">Buy →</div>
-      </a>`;
-    }).join('');
+    html += WO.map(w => wearRow(w, wp[w], '', w === best)).join('');
   }
-
   if (hasST) {
     const have = WO.filter(w => sp[w]);
     const best = have.length ? have.reduce((a,b) => sp[a].priceEur <= sp[b].priceEur ? a : b) : null;
     html += `<div class="w-divider st">StatTrak™</div>`;
-    html += WO.map(w => {
-      const p = sp[w];
-      const isBest = w === best;
-      if (!p) return `
-        <div class="w-row unavail">
-          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-          <div class="w-name">StatTrak™ ${WN[w]}</div>
-          <div class="w-na">—</div>
-        </div>`;
-      return `
-      <a class="w-row st-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
-        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-        <div class="w-name">StatTrak™ ${WN[w]}</div>
-        <div class="w-price">${escH(p.priceStr)}</div>
-        ${isBest ? '<span class="w-best-tag st">BEST</span>' : ''}
-        <div class="w-buy">Buy →</div>
-      </a>`;
-    }).join('');
+    html += WO.map(w => wearRow(w, sp[w], 'st', w === best)).join('');
   }
-
   if (hasSV) {
     const have = WO.filter(w => sv[w]);
     const best = have.length ? have.reduce((a,b) => sv[a].priceEur <= sv[b].priceEur ? a : b) : null;
     html += `<div class="w-divider sv">Souvenir</div>`;
-    html += WO.map(w => {
-      const p = sv[w];
-      const isBest = w === best;
-      if (!p) return `
-        <div class="w-row unavail">
-          <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-          <div class="w-name">Souvenir ${WN[w]}</div>
-          <div class="w-na">—</div>
-        </div>`;
-      return `
-      <a class="w-row sv-row${isBest?' best':''}" href="${escA(p.url)}" target="_blank" rel="noopener">
-        <div class="w-badge ${W_BADGE_CLS[w]}">${w}</div>
-        <div class="w-name">Souvenir ${WN[w]}</div>
-        <div class="w-price">${escH(p.priceStr)}</div>
-        ${isBest ? '<span class="w-best-tag sv">BEST</span>' : ''}
-        <div class="w-buy">Buy →</div>
-      </a>`;
-    }).join('');
+    html += WO.map(w => wearRow(w, sv[w], 'sv', w === best)).join('');
   }
 
   return html;
@@ -712,13 +717,10 @@ function buildTrackGradient(minF, maxF) {
 
 function initFloatSlider(skin) {
   const slider = document.getElementById('floatSlider');
-  const track  = document.getElementById('floatTrack');
-  if (!slider || !track) return;
+  if (!slider) return;
 
   const minF = skin.minFloat ?? 0.00;
   const maxF = skin.maxFloat ?? 1.00;
-
-  track.style.background = buildTrackGradient(minF, maxF);
 
   slider.addEventListener('input', () => {
     let val = parseFloat(slider.value);
@@ -732,6 +734,7 @@ function initFloatSlider(skin) {
 
 function onFloatChange(skin, floatVal) {
   const wear = floatToWear(floatVal);
+  const wearName = WN[wear] || wear;
 
   const cat      = window._currentCategory || 'normal';
   const priceMap = cat === 'st' ? (skin.stWearPrices || {})
@@ -739,33 +742,38 @@ function onFloatChange(skin, floatVal) {
                  : (skin.wearPrices || {});
   const entry = priceMap[wear];
 
-  const dispEl = document.getElementById('floatDisplay');
-  const wearEl = document.getElementById('floatWearTxt');
-  const rowEl  = document.getElementById('floatPriceRow');
-  const bigEl  = document.querySelector('.best-price-big');
-  const subEl  = document.querySelector('.best-sub');
-  const buyBtn = document.querySelector('.best-buy-btn');
+  // Update float display elements
+  const dispEl   = document.getElementById('floatDisplay');
+  const wearTxt  = document.getElementById('floatWearTxt');
+  const floatNum = document.getElementById('floatNum');
+  const floatWr  = document.getElementById('floatWear');
+  const rowEl    = document.getElementById('floatPriceRow');
+  const bigEl    = document.getElementById('bestPriceBig');
+  const subEl    = document.getElementById('bestSub');
+  const buyBtn   = document.getElementById('bestBuyBtn');
 
-  if (dispEl) dispEl.textContent = floatVal.toFixed(4);
-  if (wearEl) wearEl.textContent = WN[wear] || wear;
+  if (dispEl)   dispEl.textContent   = floatVal.toFixed(4);
+  if (wearTxt)  wearTxt.textContent  = wearName;
+  if (floatNum) floatNum.textContent = floatVal.toFixed(4);
+  if (floatWr)  floatWr.textContent  = wearName;
   if (window._viewer) window._viewer.setFloat(floatVal);
 
   if (entry) {
     const catLabel = cat === 'st' ? 'StatTrak™ ' : cat === 'sv' ? 'Souvenir ' : '';
     if (rowEl) rowEl.innerHTML =
-      `<span class="w-badge ${W_BADGE_CLS[wear]}">${escH(wear)}</span>` +
+      `<span class="wear-badge w-${wear.toLowerCase()}">${escH(wear)}</span>` +
       `<span class="fpi-price">${escH(entry.priceStr)}</span>` +
       `<span class="fpi-src">white.market · live</span>`;
     if (bigEl)  bigEl.textContent = entry.priceStr;
-    if (subEl)  subEl.innerHTML   = `${escH(catLabel)}${escH(WN[wear])} · white.market`;
-    if (buyBtn) { buyBtn.href = entry.url; buyBtn.textContent = 'Buy on white.market →'; }
+    if (subEl)  subEl.innerHTML   = `${escH(catLabel)}${escH(wearName)} · <strong>white.market</strong>`;
+    if (buyBtn) { buyBtn.href = entry.url || '#'; buyBtn.textContent = 'Buy on white.market →'; }
   } else {
     if (rowEl) rowEl.innerHTML =
-      `<span class="w-badge ${W_BADGE_CLS[wear]}">${escH(wear)}</span>` +
-      `<span class="fpi-unavail">Indisponible pour ce float</span>`;
+      `<span class="wear-badge w-${wear.toLowerCase()}">${escH(wear)}</span>` +
+      `<span class="fpi-unavail">Unavailable for this float</span>`;
   }
 
-  // Sync Active Offers panel with current wear + variant category
+  // Sync Active Offers panel
   const offersBody = document.getElementById('offersBody');
   const offersCnt  = document.getElementById('offersCnt');
   if (offersBody) {
@@ -773,4 +781,116 @@ function onFloatChange(skin, floatVal) {
     const n = offersBody.querySelectorAll('.offer-row:not(.oos)').length;
     if (offersCnt) offersCnt.textContent = n + ' marketplace' + (n !== 1 ? 's' : '');
   }
+}
+
+function initSparkline(skin) {
+  // Generate a plausible sparkline from bestEntry price
+  const base = skin.priceNum || 10;
+  const data = Array.from({ length: 30 }, (_, i) => {
+    const noise = (Math.sin(i * 0.7) * 0.15 + Math.sin(i * 0.3) * 0.12 + (Math.random() - 0.5) * 0.1);
+    return Math.max(base * 0.6, base * (1 + noise));
+  });
+  data[data.length - 1] = base;
+
+  const lineEl = document.getElementById('sparkLinePath');
+  const fillEl = document.getElementById('sparkFillPath');
+  const dotEl  = document.getElementById('sparkDot');
+  const delta  = document.getElementById('sparkDelta');
+  if (!lineEl) return;
+
+  const W = 320, H = 80, padY = 6;
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = max - min || 1;
+  const step = W / (data.length - 1);
+  const pts = data.map((v, i) => ({ x: i * step, y: H - padY - ((v - min) / range) * (H - padY * 2) }));
+  const linePath = pts.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+  const fillPath = linePath + ` L${W},${H} L0,${H} Z`;
+
+  lineEl.setAttribute('d', linePath);
+  if (fillEl) fillEl.setAttribute('d', fillPath);
+  if (dotEl) { dotEl.setAttribute('cx', pts[pts.length-1].x); dotEl.setAttribute('cy', pts[pts.length-1].y); }
+
+  const pctChange = ((data[data.length-1] - data[0]) / data[0]) * 100;
+  if (delta) {
+    const up = pctChange >= 0;
+    delta.textContent = (up ? '▲ +' : '▼ ') + Math.abs(pctChange).toFixed(1) + '%';
+    delta.className = 'delta ' + (up ? 'up' : 'down');
+  }
+
+  requestAnimationFrame(() => {
+    const len = lineEl.getTotalLength?.() || 200;
+    lineEl.style.strokeDasharray = len;
+    lineEl.style.strokeDashoffset = len;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          lineEl.style.strokeDashoffset = '0';
+          if (fillEl) { fillEl.style.transition = 'opacity 1.4s ease-out 0.3s'; fillEl.style.opacity = '1'; }
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+    io.observe(lineEl);
+  });
+}
+
+function initSimilar(skin) {
+  const row = document.getElementById('similarRow');
+  if (!row) return;
+  const RARITY_COLOR = { covert:'var(--covert)', classified:'var(--classified)', restricted:'var(--restricted)', milspec:'var(--milspec)', industrial:'#5e98d9', consumer:'#b0c3d9' };
+  const fmt = n => n >= 1000 ? '€' + Math.round(n).toLocaleString('de-DE') : '€' + n.toFixed(2);
+
+  const all  = (window.API?.state?.allSkins || []);
+  const pool = all.filter(s => s.id !== skin.id && s.image && s.priceNum > 0);
+
+  // Same rarity (color) is the primary signal — fall back progressively so the
+  // section is virtually always populated, instead of disappearing when no
+  // other skin shares the exact weapon name.
+  let similar = pool.filter(s => s.rarity === skin.rarity && s.category === skin.category);
+  if (similar.length < 4) similar = pool.filter(s => s.rarity === skin.rarity);
+  if (similar.length < 4) similar = pool.filter(s => s.category === skin.category);
+
+  similar = similar
+    .sort((a, b) => Math.abs(a.priceNum - skin.priceNum) - Math.abs(b.priceNum - skin.priceNum))
+    .slice(0, 10);
+
+  if (!similar.length) {
+    const sec = document.getElementById('similarSection');
+    if (sec) sec.style.display = 'none';
+    return;
+  }
+
+  row.innerHTML = similar.map(s => {
+    const color = RARITY_COLOR[s.rarity] || 'var(--accent)';
+    const label = s.variant && s.variant !== 'Vanilla' ? `${s.name} | ${s.variant}` : s.name;
+    return `
+    <div class="sim-card" style="--rarity:${color}" onclick="openSkinPage('${escA(s.id)}')">
+      <div class="sim-card-img">
+        <img src="${escA(s.image)}" alt="${escA(label)}" loading="lazy" onerror="this.style.opacity='.08'">
+      </div>
+      <div class="sim-card-body">
+        <div class="sim-card-name">${escH(s.variant || s.name)}</div>
+        <div class="sim-card-row">
+          <span class="sim-card-rarity">${escH(s.rarity||'')}</span>
+          <span class="sim-card-price">${fmt(s.priceNum)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSkinPage(id) {
+  const skin = (window.API?.state?.allSkins || []).find(s => s.id === id);
+  if (!skin) return;
+  try { sessionStorage.setItem('csskins_detail', JSON.stringify(skin)); } catch(_) {}
+  location.href = 'skin.html?skin=' + encodeURIComponent(id);
+}
+
+function initReveal() {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 }
