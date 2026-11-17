@@ -5,3 +5,8 @@ config.js
 # OS
 .DS_Store
 Thumbs.db
+
+# Projet Roblox (Rojo)
+build/_tests_bundle.luau
+sourcemap.json
+roblox.yml
