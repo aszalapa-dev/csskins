@@ -1,0 +1,26 @@
+# Bibliothèque standard MINIMALE pour selene, utilisée seulement quand « selene generate-roblox-std »
+# ne peut pas télécharger la vraie (pas d'accès réseau). Sur ton PC, utilise simplement `selene src`.
+base: luau
+name: selene_secours
+globals:
+  game: { any: true }
+  workspace: { any: true }
+  script: { any: true }
+  task: { any: true }
+  Instance: { any: true }
+  Enum: { any: true }
+  Vector3: { any: true }
+  Vector2: { any: true }
+  CFrame: { any: true }
+  Color3: { any: true }
+  UDim: { any: true }
+  UDim2: { any: true }
+  Random: { any: true }
+  TweenInfo: { any: true }
+  NumberRange: { any: true }
+  NumberSequence: { any: true }
+  NumberSequenceKeypoint: { any: true }
+  ColorSequence: { any: true }
+  typeof: { args: [{ type: any }] }
+  warn: { args: [{ type: "..." }] }
+  tick: { args: [] }

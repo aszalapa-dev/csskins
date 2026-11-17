@@ -193,10 +193,16 @@ function Formules.equipe(snowpals: { [string]: ModeleDonnees.Exemplaires }, nomb
 	for id, exemplaires in snowpals do
 		if Catalogue.ParId[id] ~= nil then
 			if exemplaires.D > 0 then
-				table.insert(types, { Id = id, Dore = true, Revenu = Formules.revenuSnowpal(id, true), Quantite = exemplaires.D })
+				table.insert(
+					types,
+					{ Id = id, Dore = true, Revenu = Formules.revenuSnowpal(id, true), Quantite = exemplaires.D }
+				)
 			end
 			if exemplaires.N > 0 then
-				table.insert(types, { Id = id, Dore = false, Revenu = Formules.revenuSnowpal(id, false), Quantite = exemplaires.N })
+				table.insert(
+					types,
+					{ Id = id, Dore = false, Revenu = Formules.revenuSnowpal(id, false), Quantite = exemplaires.N }
+				)
 			end
 		end
 	end

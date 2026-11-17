@@ -54,7 +54,10 @@ end
 -- ───────────── Cadeaux de temps de jeu ─────────────
 
 -- Remet les cadeaux à zéro si on a changé de jour
-function Recompenses.rafraichirCadeaux(cadeaux: { Jour: number, Secondes: number, Reclames: { [string]: boolean } }, jour: number)
+function Recompenses.rafraichirCadeaux(
+	cadeaux: { Jour: number, Secondes: number, Reclames: { [string]: boolean } },
+	jour: number
+)
 	if cadeaux.Jour ~= jour then
 		cadeaux.Jour = jour
 		cadeaux.Secondes = 0

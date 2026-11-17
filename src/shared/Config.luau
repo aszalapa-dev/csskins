@@ -209,13 +209,41 @@ Config.Cadeaux = {
 Config.Quetes = {
 	{ Id = "Boules10", Groupe = 1, Type = "Boules", Objectif = 10, Texte = "Livre 10 boules de neige", Flocons = 150 },
 	{ Id = "Boules25", Groupe = 1, Type = "Boules", Objectif = 25, Texte = "Livre 25 boules de neige", Flocons = 320 },
-	{ Id = "Geante3", Groupe = 1, Type = "BoulesMax", Objectif = 3, Texte = "Livre 3 boules à taille maximale", Flocons = 200 },
+	{
+		Id = "Geante3",
+		Groupe = 1,
+		Type = "BoulesMax",
+		Objectif = 3,
+		Texte = "Livre 3 boules à taille maximale",
+		Flocons = 200,
+	},
 	{ Id = "Snowpals8", Groupe = 2, Type = "Snowpals", Objectif = 8, Texte = "Obtiens 8 Snowpals", Flocons = 180 },
-	{ Id = "Rares2", Groupe = 2, Type = "Rares", Objectif = 2, Texte = "Obtiens 2 Snowpals Rares ou mieux", Flocons = 300 },
+	{
+		Id = "Rares2",
+		Groupe = 2,
+		Type = "Rares",
+		Objectif = 2,
+		Texte = "Obtiens 2 Snowpals Rares ou mieux",
+		Flocons = 300,
+	},
 	{ Id = "Fusion1", Groupe = 2, Type = "Fusions", Objectif = 1, Texte = "Crée 1 Snowpal doré", Flocons = 350 },
 	{ Id = "Temps10", Groupe = 3, Type = "Minutes", Objectif = 10, Texte = "Joue 10 minutes", Flocons = 200 },
-	{ Id = "Ameliore3", Groupe = 3, Type = "Ameliorations", Objectif = 3, Texte = "Achète 3 améliorations", Flocons = 180 },
-	{ Id = "Collecte5", Groupe = 3, Type = "Collectes", Objectif = 5, Texte = "Vide ta tirelire 5 fois", Flocons = 160 },
+	{
+		Id = "Ameliore3",
+		Groupe = 3,
+		Type = "Ameliorations",
+		Objectif = 3,
+		Texte = "Achète 3 améliorations",
+		Flocons = 180,
+	},
+	{
+		Id = "Collecte5",
+		Groupe = 3,
+		Type = "Collectes",
+		Objectif = 5,
+		Texte = "Vide ta tirelire 5 fois",
+		Flocons = 160,
+	},
 }
 Config.NombreGroupesQuetes = 3
 

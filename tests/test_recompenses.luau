@@ -74,7 +74,8 @@ T.test("quêtes du jour : 3 quêtes, une par groupe, déterministes", function()
 end)
 
 T.test("progression et réclamation des quêtes", function()
-	local liste = { { Id = "Boules10", Progres = 0, Reclamee = false }, { Id = "Rares2", Progres = 0, Reclamee = false } }
+	local liste =
+		{ { Id = "Boules10", Progres = 0, Reclamee = false }, { Id = "Rares2", Progres = 0, Reclamee = false } }
 	T.egal(Recompenses.progresser(liste, "Boules", 4), true)
 	T.egal(liste[1].Progres, 4)
 	T.egal(liste[2].Progres, 0)

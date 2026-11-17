@@ -104,11 +104,20 @@ local function simuler(verbeux: boolean)
 		if Formules.peutRebirth(d) then
 			if verbeux then
 				local a = d.Ameliorations
-				print(string.format(
-					"  [avant rebirth] Gants %d Pelle %d Bottes %d Chance %d Socles %d | cycle %.0fs | %s flocons/s | index %d/%d",
-					a.Gants, a.Pelle, a.Bottes, a.Chance, a.Socles, cycle, Formules.formater(gainsRecents),
-					Formules.entreesIndex(d.Index), #require(script.Parent.Catalogue).Liste * 2
-				))
+				print(
+					string.format(
+						"  [avant rebirth] Gants %d Pelle %d Bottes %d Chance %d Socles %d | cycle %.0fs | %s flocons/s | index %d/%d",
+						a.Gants,
+						a.Pelle,
+						a.Bottes,
+						a.Chance,
+						a.Socles,
+						cycle,
+						Formules.formater(gainsRecents),
+						Formules.entreesIndex(d.Index),
+						#require(script.Parent.Catalogue).Liste * 2
+					)
+				)
 			end
 			Formules.appliquerRebirth(d)
 			jalon("Rebirth " .. d.Rebirths)
@@ -123,8 +132,16 @@ local jalons = simuler(true)
 local function verifier(nom: string, minimum: number, maximum: number)
 	local t = jalons[nom]
 	local ok = t ~= nil and t >= minimum and t <= maximum
-	print(string.format("%s %-24s %s (attendu entre %s et %s)", if ok then "OK  " else "ECHEC", nom,
-		if t then Formules.formaterDuree(t) else "jamais", Formules.formaterDuree(minimum), Formules.formaterDuree(maximum)))
+	print(
+		string.format(
+			"%s %-24s %s (attendu entre %s et %s)",
+			if ok then "OK  " else "ECHEC",
+			nom,
+			if t then Formules.formaterDuree(t) else "jamais",
+			Formules.formaterDuree(minimum),
+			Formules.formaterDuree(maximum)
+		)
+	)
 	return ok
 end
 

@@ -31,7 +31,10 @@ T.test("taille, vitesse, croissance, socles", function()
 	T.egal(Formules.socles(0, false), Config.Equipe.SoclesBase)
 	T.egal(Formules.socles(99, false), Config.Equipe.SoclesMax)
 	T.egal(Formules.socles(99, true), Config.Equipe.SoclesMax + Config.Equipe.SoclesGamepass)
-	T.vrai(Config.Equipe.SoclesBase + Config.Ameliorations.Socles.NiveauMax == Config.Equipe.SoclesMax, "socles cohérents")
+	T.vrai(
+		Config.Equipe.SoclesBase + Config.Ameliorations.Socles.NiveauMax == Config.Equipe.SoclesMax,
+		"socles cohérents"
+	)
 end)
 
 T.test("zones par distance", function()
