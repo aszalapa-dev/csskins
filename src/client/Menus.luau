@@ -80,14 +80,18 @@ local function descriptionAmelioration(nom: string, niveau: number): string
 		local base = Config.Boule.CroissanceParNiveau
 		return string.format(
 			"Vitesse de la boule : +%d %% ➜ +%d %%",
-			niveau * base * 100 + 0.5,
-			suivant * base * 100 + 0.5
+			math.floor(niveau * base * 100 + 0.5),
+			math.floor(suivant * base * 100 + 0.5)
 		)
 	elseif nom == "Bottes" then
 		return string.format("Vitesse : %d ➜ %d", Formules.vitesse(niveau), Formules.vitesse(suivant))
 	elseif nom == "Chance" then
 		local base = Config.Ameliorations.Chance.BonusParNiveau
-		return string.format("Chance : +%d %% ➜ +%d %%", niveau * base * 100 + 0.5, suivant * base * 100 + 0.5)
+		return string.format(
+			"Chance : +%d %% ➜ +%d %%",
+			math.floor(niveau * base * 100 + 0.5),
+			math.floor(suivant * base * 100 + 0.5)
+		)
 	elseif nom == "Socles" then
 		return string.format(
 			"Socles : %d ➜ %d",
@@ -219,7 +223,7 @@ local function construireIndex()
 	-- Transparence : les chances de base de chaque rareté sont affichées
 	local chances = {}
 	for _, rarete in Config.Raretes do
-		table.insert(chances, `{rarete.Nom} {rarete.Probabilite * 100} %`)
+		table.insert(chances, `{rarete.Nom} {string.format("%.3g", rarete.Probabilite * 100)} %`)
 	end
 	Interface.texte({
 		Text = "Chances de base : " .. table.concat(chances, " · "),
