@@ -40,9 +40,16 @@ end
 
 -- Recompte les amis présents pour chaque joueur
 function ServiceSocial.majAmis()
+	-- sontAmis() peut attendre (appel web) : on travaille sur une copie de la liste des joueurs
+	local presents = {}
 	for joueur, session in Sessions.toutes() do
+		table.insert(presents, { Joueur = joueur, Session = session })
+	end
+	for _, entree in presents do
+		local joueur, session = entree.Joueur, entree.Session
 		local nombre = 0
-		for autre in Sessions.toutes() do
+		for _, autreEntree in presents do
+			local autre = autreEntree.Joueur
 			if autre ~= joueur and joueur.Parent == Players and autre.Parent == Players and sontAmis(joueur, autre) then
 				nombre += 1
 			end

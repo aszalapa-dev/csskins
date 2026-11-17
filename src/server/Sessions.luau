@@ -22,6 +22,7 @@ export type Session = {
 	Terrain: number, -- numéro du terrain attribué (1..8)
 	Boule: Boule?,
 	DernierePosition: Vector3?,
+	SurAtelier: boolean, -- le joueur était sur son atelier au tick précédent
 	Passes: { [string]: boolean },
 	Amis: number, -- nombre d'amis présents sur le serveur
 	Sale: boolean, -- l'état doit être renvoyé au client
@@ -41,6 +42,7 @@ function Sessions.creer(joueur: Player, donnees: ModeleDonnees.Donnees, terrain:
 		Terrain = terrain,
 		Boule = nil,
 		DernierePosition = nil,
+		SurAtelier = false,
 		Passes = {},
 		Amis = 0,
 		Sale = true,

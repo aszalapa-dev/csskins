@@ -3,21 +3,35 @@
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
-      "Shared": { "$path": "src/shared" },
+      "Shared": {
+        "$path": "src/shared"
+      },
       "Remotes": {
         "$className": "Folder",
-        "Action": { "$className": "RemoteEvent" },
-        "Etat": { "$className": "RemoteEvent" },
-        "Notification": { "$className": "RemoteEvent" },
-        "Effet": { "$className": "RemoteEvent" }
+        "Action": {
+          "$className": "RemoteEvent"
+        },
+        "Etat": {
+          "$className": "RemoteEvent"
+        },
+        "Notification": {
+          "$className": "RemoteEvent"
+        },
+        "Effet": {
+          "$className": "RemoteEvent"
+        }
       }
     },
     "ServerScriptService": {
-      "Serveur": { "$path": "src/server" }
+      "Serveur": {
+        "$path": "src/server"
+      }
     },
     "StarterPlayer": {
       "StarterPlayerScripts": {
-        "Client": { "$path": "src/client" }
+        "Client": {
+          "$path": "src/client"
+        }
       }
     },
     "Lighting": {
@@ -28,6 +42,16 @@
     "SoundService": {
       "$properties": {
         "RespectFilteringEnabled": true
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": false
+      }
+    },
+    "StarterGui": {
+      "$properties": {
+        "ScreenOrientation": "LandscapeSensor"
       }
     }
   }

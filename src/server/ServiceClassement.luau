@@ -54,11 +54,15 @@ end
 
 local function rafraichir(magasin: OrderedDataStore, lignes: { TextLabel })
 	-- 1) Envoie le score des joueurs présents
+	-- (SetAsync attend : on copie d'abord les scores pour ne pas parcourir une table qui change)
+	local scores = {}
 	for joueur, session in Sessions.toutes() do
-		local valeur = math.floor(math.min(session.Donnees.FloconsTotal, 9e15))
-		if valeur > 0 then
+		table.insert(scores, { Id = joueur.UserId, Valeur = math.floor(math.min(session.Donnees.FloconsTotal, 9e15)) })
+	end
+	for _, score in scores do
+		if score.Valeur > 0 then
 			pcall(function()
-				magasin:SetAsync(tostring(joueur.UserId), valeur)
+				magasin:SetAsync(tostring(score.Id), score.Valeur)
 			end)
 		end
 	end

@@ -23,38 +23,37 @@ local ServiceDonnees = {}
 local REGLAGES = Config.Donnees
 local idServeur = if game.JobId ~= "" then game.JobId else "studio"
 
--- nil = pas encore testé ; false = indisponible (mode temporaire)
+-- nil = pas encore testé (ou échec hors Studio : on retestera) ; false = mode temporaire (Studio)
 local magasin: DataStore? = nil
 local disponible: boolean? = nil
 
+-- Renvoie le DataStore, ou nil s'il n'est pas utilisable pour l'instant.
+-- Le mode « données temporaires » n'existe QUE dans Studio : sur un vrai serveur, une panne du
+-- DataStore ne doit jamais faire croire à un joueur qu'il repart de zéro.
 local function obtenirMagasin(): DataStore?
 	if disponible == nil then
 		local ok, resultat = pcall(function()
-			return DataStoreService:GetDataStore(REGLAGES.NomDataStore)
+			local store = DataStoreService:GetDataStore(REGLAGES.NomDataStore)
+			store:GetAsync("__test") -- dans Studio sans accès API, c'est cet appel qui échoue
+			return store
 		end)
-		if ok and resultat ~= nil then
-			-- Dans Studio sans accès API, GetDataStore réussit mais les requêtes échouent : on teste.
-			local okTest, erreurTest = pcall(function()
-				return (resultat :: DataStore):GetAsync("__test")
-			end)
-			if okTest then
-				magasin = resultat :: DataStore
-				disponible = true
-			else
-				disponible = false
-				warn(`[Donnees] DataStore indisponible ({erreurTest}) : données TEMPORAIRES pour cette session.`)
-			end
-		else
+		if ok then
+			magasin = resultat
+			disponible = true
+		elseif RunService:IsStudio() then
 			disponible = false
-			warn("[Donnees] DataStore indisponible : données TEMPORAIRES pour cette session.")
+			warn(`[Donnees] DataStore indisponible ({resultat}) : données TEMPORAIRES pour cette session Studio.`)
+		else
+			warn(`[Donnees] DataStore indisponible ({resultat}) : nouvel essai au prochain appel.`)
 		end
 	end
 	return magasin
 end
 
+-- true = on joue avec des données en mémoire, jamais sauvegardées (Studio sans accès API)
 function ServiceDonnees.estTemporaire(): boolean
 	obtenirMagasin()
-	return disponible ~= true
+	return disponible == false
 end
 
 local function cle(idJoueur: number): string
@@ -86,7 +85,10 @@ end
 function ServiceDonnees.charger(idJoueur: number): (Donnees?, string?)
 	local store = obtenirMagasin()
 	if store == nil then
-		return ModeleDonnees.defaut(), nil -- mode temporaire
+		if disponible == false then
+			return ModeleDonnees.defaut(), nil -- mode temporaire (Studio)
+		end
+		return nil, "DataStore indisponible"
 	end
 
 	-- On réessaie quelques fois si un autre serveur tient encore le verrou (changement de serveur rapide)
@@ -138,7 +140,7 @@ end
 function ServiceDonnees.sauvegarder(idJoueur: number, donnees: Donnees, liberer: boolean): boolean
 	local store = obtenirMagasin()
 	if store == nil then
-		return true
+		return disponible == false -- « réussi » seulement en mode temporaire
 	end
 	donnees.DerniereConnexion = os.time()
 	local abandon = false
@@ -165,10 +167,6 @@ function ServiceDonnees.sauvegarder(idJoueur: number, donnees: Donnees, liberer:
 		return false
 	end
 	return ok
-end
-
-function ServiceDonnees.estStudio(): boolean
-	return RunService:IsStudio()
 end
 
 return ServiceDonnees

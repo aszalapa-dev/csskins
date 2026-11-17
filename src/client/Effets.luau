@@ -99,7 +99,9 @@ local function majBoule(joueur: Player, dt: number)
 		aPlat = Vector3.new(0, 0, -1)
 	end
 	aPlat = aPlat.Unit
-	local sol = racine.Position.Y - humanoide.HipHeight - racine.Size.Y / 2
+	-- Hauteur du sol sous le personnage (les avatars R6 ont HipHeight = 0 et des jambes de 2 studs)
+	local jambes = if humanoide.RigType == Enum.HumanoidRigType.R6 then 2 else humanoide.HipHeight
+	local sol = racine.Position.Y - jambes - racine.Size.Y / 2
 	local centre = Vector3.new(racine.Position.X, sol + diametre / 2, racine.Position.Z) + aPlat * (diametre / 2 + 1.4)
 	-- Rotation : proportionnelle à la distance parcourue
 	if visuelle.Derniere ~= nil then
@@ -150,7 +152,7 @@ end
 local function majTempete()
 	local tempete = Workspace:GetAttribute("Tempete") == true
 	if emetteurNeige then
-		emetteurNeige.Rate = if tempete then 320 else 70
+		emetteurNeige.Rate = if tempete then 220 else 70
 		emetteurNeige.Speed = if tempete then NumberRange.new(16, 24) else NumberRange.new(7, 11)
 		emetteurNeige.Acceleration = if tempete then Vector3.new(14, 0, 6) else Vector3.new(1.5, 0, 0.5)
 	end

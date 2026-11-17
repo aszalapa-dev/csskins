@@ -94,7 +94,7 @@ local function majEchelle()
 		return
 	end
 	local taille = camera.ViewportSize
-	echelle.Scale = math.clamp(math.min(taille.X / REFERENCE.X, taille.Y / REFERENCE.Y), 0.45, 1.6)
+	echelle.Scale = math.clamp(math.min(taille.X / REFERENCE.X, taille.Y / REFERENCE.Y), 0.3, 1.6)
 end
 
 -- Renvoie le ScreenGui du jeu (créé au premier appel). Il survit à la réapparition du personnage.
@@ -134,7 +134,9 @@ function Interface.texte(proprietes: { [string]: any }): TextLabel
 		Text = "",
 	}
 	for cle, valeur in proprietes do
-		base[cle] = valeur
+		if cle ~= "TailleMax" then -- « TailleMax » n'est pas une propriété Roblox : c'est notre réglage
+			base[cle] = valeur
+		end
 	end
 	local label: TextLabel = creer("TextLabel", base)
 	-- Limite la taille du texte pour garder un rendu régulier

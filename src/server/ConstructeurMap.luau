@@ -603,7 +603,7 @@ local function construireTerrain(parent: Folder, numero: number)
 	local apparition = Instance.new("SpawnLocation")
 	apparition.Name = "Spawn"
 	apparition.Size = Vector3.new(6, 0.3, 6)
-	apparition.CFrame = origine * CFrame.new(-13, 0.15, -9) * CFrame.Angles(0, math.rad(180), 0)
+	apparition.CFrame = origine * CFrame.new(-13, 0.15, -9)
 	apparition.Anchored = true
 	apparition.Neutral = true
 	apparition.Duration = 0
@@ -858,12 +858,12 @@ local function reglerEclairage()
 	end
 
 	local atmosphere = unique("Atmosphere") :: Atmosphere
-	atmosphere.Density = 0.28
+	atmosphere.Density = 0.22
 	atmosphere.Offset = 0.2
 	atmosphere.Color = Color3.fromRGB(205, 225, 255)
 	atmosphere.Decay = Color3.fromRGB(150, 180, 235)
 	atmosphere.Glare = 0.15
-	atmosphere.Haze = 1.4
+	atmosphere.Haze = 1
 
 	unique("Sky") -- ciel par défaut de Roblox
 

@@ -193,13 +193,15 @@ local function tick(session: Session, dt: number)
 	local terrain = ServiceTerrains.terrain(session.Terrain)
 	if terrain ~= nil then
 		local ecart = position - terrain.CentreAtelier
-		if
-			Vector3.new(ecart.X, 0, ecart.Z).Magnitude <= ConstructeurMap.RAYON_ATELIER + 1
+		local dessus = Vector3.new(ecart.X, 0, ecart.Z).Magnitude <= ConstructeurMap.RAYON_ATELIER + 1
 			and math.abs(ecart.Y) < 14
-		then
-			local collecte = ServiceTerrains.collecter(session)
-			if collecte > 0 then
-				Reseau.effet(session.Joueur, "Collecte", { Flocons = collecte })
+		if dessus then
+			-- La tirelire n'est vidée qu'en ENTRANT sur l'atelier (pas à chaque tick en restant dessus)
+			if not session.SurAtelier then
+				local collecte = ServiceTerrains.collecter(session)
+				if collecte > 0 then
+					Reseau.effet(session.Joueur, "Collecte", { Flocons = collecte })
+				end
 			end
 			local boule = session.Boule
 			if boule ~= nil then
@@ -216,6 +218,7 @@ local function tick(session: Session, dt: number)
 				end
 			end
 		end
+		session.SurAtelier = dessus
 	end
 
 	publierBoule(session)

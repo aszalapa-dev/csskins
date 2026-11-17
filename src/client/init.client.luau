@@ -11,6 +11,7 @@ local SoundService = game:GetService("SoundService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local Config = require(Shared:WaitForChild("Config"))
+local Formules = require(Shared:WaitForChild("Formules"))
 
 local Effets = require(script.Effets)
 local Etat = require(script.Etat)
@@ -40,7 +41,7 @@ end)
 local CRIS = { [3] = "RARE !", [4] = "ÉPIQUE !", [5] = "LÉGENDAIRE !!", [6] = "MYTHIQUE !!!" }
 
 local function formater(nombre: any): string
-	return require(Shared:WaitForChild("Formules")).formater(if type(nombre) == "number" then nombre else 0)
+	return Formules.formater(if type(nombre) == "number" then nombre else 0)
 end
 
 local effets: { [string]: (p: { [string]: any }) -> () } = {}
